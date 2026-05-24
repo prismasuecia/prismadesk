@@ -1,0 +1,186 @@
+sources:
+  - name: Regeringen pressmeddelanden
+    url: https://www.regeringen.se/Filter/RssFeed?filterType=Taxonomy&filterByType=FilterablePageBase&preFilteredCategories=1284%2C1285%2C1286%2C1287%2C1288%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297%2C2425&rootPageReference=0&filteredContentCategories=1334&filteredPoliticalLevelCategories=&filteredPoliticalAreaCategories=&filteredPublisherCategories=
+    type: rss
+    category: government
+    priority: red
+  - name: Regeringen pressmeddelanden web
+    url: https://www.regeringen.se/pressmeddelanden/
+    type: web
+    category: government
+    priority: red
+  - name: Regeringen statsministern
+    url: https://www.regeringen.se/Filter/RssFeed?filterType=Taxonomy&filterByType=FilterablePageBase&preFilteredCategories=1284%2C1285%2C1286%2C1287%2C1288%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297%2C2425&rootPageReference=0&filteredContentCategories=1334&filteredPoliticalLevelCategories=&filteredPoliticalAreaCategories=&filteredPublisherCategories=2605
+    type: rss
+    category: prime_minister
+    priority: red
+  - name: Via TT
+    url: https://via.tt.se/rss/releases/latest
+    type: rss
+    category: press_releases
+    priority: red
+  - name: NATO events
+    url: https://www.nato.int/en/news-and-events/articles/news
+    type: web
+    category: nato
+    priority: red
+  - name: Kungahuset kalender
+    url: https://www.kungahuset.se/kalender
+    type: web
+    category: royal
+    priority: red
+  - name: Riksdagen beslutade betänkanden
+    url: https://data.riksdagen.se/dokumentlista/?avd=dokument&doktyp=bet&beslutad=1&sort=beslutsdag&sortorder=desc&utformat=rss
+    type: rss
+    category: parliament_decisions
+    priority: orange
+  - name: Riksdagen betänkanden förslag
+    url: https://data.riksdagen.se/dokumentlista/?avd=dokument&doktyp=bet&sort=datum&sortorder=desc&utformat=rss
+    type: rss
+    category: parliament_reports
+    priority: orange
+  - name: Riksdagen propositioner
+    url: https://data.riksdagen.se/dokumentlista/?avd=dokument&doktyp=prop&sort=datum&sortorder=desc&utformat=rss
+    type: rss
+    category: parliament_propositions
+    priority: orange
+  - name: Riksdagen frågor interpellationer KU
+    url: https://data.riksdagen.se/dokumentlista/?avd=dokument&doktyp=ip,fr,frs,ku-anm&sort=datum&sortorder=desc&utformat=rss
+    type: rss
+    category: parliament_scrutiny
+    priority: yellow
+  - name: Riksdagen motioner
+    url: https://data.riksdagen.se/dokumentlista/?avd=dokument&doktyp=mot&sort=datum&sortorder=desc&utformat=rss
+    type: rss
+    category: parliament_motions
+    priority: green
+  - name: Riksdagen kalender kammaren
+    url: https://data.riksdagen.se/kalender/?org=kamm&utformat=icalendar
+    type: ical
+    category: parliament_calendar
+    priority: orange
+  - name: Försvarsmakten nyheter
+    url: https://www.forsvarsmakten.se/sv/aktuellt/
+    type: web
+    category: defence
+    priority: red
+  - name: Stockholms stad aktuellt
+    url: https://start.stockholm/aktuellt/
+    type: web
+    category: stockholm_city
+    priority: orange
+  - name: Stockholms stad Via TT
+    url: https://via.tt.se/rss/releases/latest?publisherId=1213538
+    type: rss
+    category: stockholm_city_press
+    priority: orange
+  - name: Kultur Stockholm
+    url: https://kultur.stockholm/kalendarium/
+    type: web
+    category: culture
+    priority: blue
+  - name: DN Kalendariet
+    url: https://www.dn.se/kalendariet/
+    type: web
+    category: culture
+    priority: blue
+  - name: Ung i Stockholm
+    url: https://ung.stockholm/aktuellt/
+    type: web
+    category: youth_family
+    priority: blue
+  - name: Visit Stockholm events
+    url: https://www.visitstockholm.se/event/?
+    type: web
+    category: events
+    priority: blue
+  - name: Visit Stockholm startsida
+    url: https://www.visitstockholm.se
+    type: web
+    category: events
+    priority: blue
+  - name: SL aktuellt
+    url: https://sl.se/aktuellt
+    type: web
+    category: transport
+    priority: green
+  - name: SJ press
+    url: https://www.sj.se/press.html
+    type: web
+    category: rail
+    priority: green
+  - name: Swedavia press
+    url: https://www.swedavia.se/arlanda/Press/
+    type: web
+    category: aviation
+    priority: green
+  - name: Trafikverket pressmeddelanden
+    url: https://via.tt.se/rss/releases/latest?publisherId=44450
+    type: rss
+    category: transport_infrastructure
+    priority: green
+  - name: Instituto Cervantes Stockholm
+    url: https://estocolmo.cervantes.es/es/cultura_espanol/calendario_cultural_espanol.shtm
+    type: web
+    category: latino_culture
+    priority: blue
+  - name: Casa Latina Sverige
+    url: https://www.casalatina.se
+    type: web
+    category: latino_community
+    priority: blue
+  - name: SVT Nyheter
+    url: https://www.svt.se/rss.xml
+    type: rss
+    category: media_national
+    priority: yellow
+  - name: SVT Stockholm
+    url: https://www.svt.se/nyheter/lokalt/stockholm/rss.xml
+    type: rss
+    category: media_stockholm
+    priority: blue
+  - name: Sveriges Radio Ekot
+    url: https://api.sr.se/api/rss/program/4540
+    type: rss
+    category: media_national
+    priority: yellow
+  - name: P4 Stockholm
+    url: https://api.sr.se/api/rss/program/103
+    type: rss
+    category: media_stockholm
+    priority: blue
+  - name: TV4 Nyheterna
+    url: https://www.tv4.se/rss
+    type: rss
+    category: media_national
+    priority: yellow
+  - name: Aftonbladet senaste nytt
+    url: https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/
+    type: rss
+    category: media_breaking
+    priority: yellow
+  - name: Expressen nyheter
+    url: https://feeds.expressen.se/nyheter/
+    type: rss
+    category: media_breaking
+    priority: yellow
+  - name: Dagens Nyheter
+    url: https://www.dn.se/rss/
+    type: rss
+    category: media_national
+    priority: yellow
+  - name: Svenska Dagbladet
+    url: https://www.svd.se/feed/articles.rss
+    type: rss
+    category: media_national
+    priority: yellow
+  - name: Dagens industri
+    url: https://www.di.se/rss
+    type: rss
+    category: media_economy
+    priority: green
+  - name: Mitt i Stockholm
+    url: https://www.mitti.se/rss-6.8.0.0.e70d15cb3c
+    type: rss
+    category: media_stockholm
+    priority: blue

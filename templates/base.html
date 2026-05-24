@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prisma Desk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Prisma Suecia / ZUMA Press</p>
+        <h1>Prisma Desk</h1>
+      </div>
+      <form action="{{ url_for('update') }}" method="post">
+        <button class="update-button" type="submit" data-update-button>UPPDATERA DESK</button>
+      </form>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>

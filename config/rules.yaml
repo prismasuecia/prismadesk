@@ -1,0 +1,347 @@
+red_alert_people:
+  - Ulf Kristersson
+  - Pål Jonson
+  - Maria Malmer Stenergard
+  - statsministern
+  - försvarsministern
+  - utrikesministern
+  - Mark Rutte
+  - NATO Secretary General
+  - kungaparet
+  - kronprinsessan
+  - utländsk ledare
+  - president
+  - premiärminister
+red_alert_topics:
+  - NATO
+  - försvar
+  - Försvarsmakten
+  - Östersjön
+  - säkerhet
+  - militär
+  - Ukraina
+  - Ryssland
+  - marinen
+  - fartyg
+  - fregatt
+  - ubåt
+  - statsbesök
+  - terror
+  - kris
+  - explosion
+  - skjutning
+  - storbrand
+  - olycka
+  - evakuering
+  - cyberattack
+red_alert_event_words:
+  - pressträff
+  - pressinbjudan
+  - pressbriefing
+  - gemensam pressbriefing
+  - briefing
+  - presskonferens
+  - media invitation
+  - föranmälan
+  - ackreditering
+  - deadline
+  - anmälan senast
+  - RSVP
+red_alert_places:
+  - Rosenbad
+  - Riksdagens presscenter
+  - Skeppsbron
+  - Arlanda
+  - Stockholms central
+  - Sergels torg
+  - Kungsträdgården
+  - Helsingborg
+  - Revinge
+  - Visby
+  - Almedalen
+hard_red_terms:
+  - Ulf Kristersson
+  - Pål Jonson
+  - Mark Rutte
+  - Natos generalsekreterare
+  - NATO Secretary General
+  - NATO
+  - Försvarsmakten
+  - Skeppsbron
+  - Revinge
+  - Helsingborg
+  - statsbesök
+zuma_terms:
+  - NATO
+  - statsbesök
+  - kungliga ceremonier
+  - internationella toppmöten
+  - demonstration
+  - försvar
+  - militär
+  - olycka
+  - kollektivtrafik
+  - flyg
+  - extremväder
+  - sport
+  - Skeppsbron
+  - Rosenbad
+  - Arlanda
+  - Kungsträdgården
+zuma_picture_event_terms:
+  - pressträff
+  - presskonferens
+  - pressbriefing
+  - gemensam pressbriefing
+  - pressinbjudan
+  - fototillfälle
+  - pressvisning
+  - bilateralt möte
+  - statsbesök
+  - demonstration
+  - manifestation
+  - partiledardebatt
+  - frågestund
+  - särskild debatt
+  - ceremoni
+  - kortege
+  - statsbegravning
+  - toppmöte
+  - ministermöte
+  - militärövning
+  - fartygsbesök
+  - invigning
+zuma_picture_subject_terms:
+  - NATO
+  - Mark Rutte
+  - Ulf Kristersson
+  - Pål Jonson
+  - Maria Malmer Stenergard
+  - statsministern
+  - försvarsministern
+  - utrikesministern
+  - kungaparet
+  - kronprinsessan
+  - president
+  - premiärminister
+  - utländsk ledare
+  - Ukraina
+  - Ryssland
+  - Försvarsmakten
+  - marinen
+  - fregatt
+  - ubåt
+zuma_picture_place_terms:
+  - Rosenbad
+  - Riksdagens presscenter
+  - Skeppsbron
+  - Kungliga slottet
+  - Arlanda
+  - Stockholms central
+  - Sergels torg
+  - Kungsträdgården
+  - Helsingborg
+  - Visby
+  - Almedalen
+  - Karlskrona
+  - Berga
+  - Revinge
+stockholm_priority_terms:
+  - Stockholm
+  - Stockholms
+  - Stockholms stad
+  - Rosenbad
+  - Riksdagens presscenter
+  - Riksdagen
+  - Skeppsbron
+  - Arlanda
+  - Stockholms central
+  - Sergels torg
+  - Kungsträdgården
+  - Kungliga slottet
+  - Södermalm
+  - Norrmalm
+  - Östermalm
+  - Vasastan
+  - Gamla stan
+  - Lidingö
+  - Danderyd
+  - Täby
+  - Sollentuna
+  - Solna
+  - Sundbyberg
+  - Bromma
+  - Vällingby
+  - Järva
+  - Kista
+  - Tensta
+  - Rinkeby
+  - Husby
+  - Skärholmen
+  - Farsta
+  - Huddinge
+  - Nacka
+  - Tyresö
+  - Haninge
+  - Botkyrka
+  - Södertälje
+  - Norrtälje
+  - Värmdö
+  - Vaxholm
+  - Ekerö
+outside_stockholm_terms:
+  - Helsingborg
+  - Revinge
+  - Malmö
+  - Göteborg
+  - Visby
+  - Almedalen
+  - Karlskrona
+  - Berga
+  - Uppsala
+  - Kristianstad
+  - Skåne
+  - Östersund
+  - Kiruna
+  - Luleå
+  - Umeå
+prisma_terms:
+  - migration
+  - Migrationsverket
+  - arbetskraftsinvandring
+  - arbetstillstånd
+  - lönegolv
+  - migrationsminister
+  - Johan Forssell
+  - Johan Britz
+  - nyanlända
+  - invandrare
+  - integration
+  - medborgarskap
+  - laglig vistelse
+  - AI
+  - artificiell intelligens
+  - ansiktsigenkänning
+  - realtid
+  - Polismyndigheten
+  - polisen
+  - polis
+  - Justitieutskottet
+  - integritet
+  - övervakning
+  - kameraövervakning
+  - biometrisk
+  - biometriska
+  - personuppgifter
+  - rättssäkerhet
+  - brottsbekämpning
+  - arbetsmarknad
+  - Försäkringskassan
+  - socialförsäkring
+  - socialförsäkringen
+  - socialförsäkringsförmåner
+  - bosättningsbaserade
+  - kvalificering
+  - kvalificeringskrav
+  - barnbidrag
+  - flerbarnstillägg
+  - bostadsbidrag
+  - bostadstillägg
+  - föräldrapenning
+  - omvårdnadsbidrag
+  - merkostnadsersättning
+  - äldreförsörjningsstöd
+  - sjukersättning
+  - aktivitetsersättning
+  - försörjningsstöd
+  - barnfattigdom
+  - funktionsnedsättning
+  - Skatteverket
+  - CSN
+  - 1177
+  - SL
+  - SJ
+  - Swedavia
+  - Stockholm stad
+  - skola
+  - skolor
+  - vård
+  - vaccination
+  - bostad
+  - elpris
+  - matpris
+  - latinamerikanska ambassader
+  - Instituto Cervantes
+  - latinoevent
+  - konsert
+  - Riksdagen
+  - proposition
+  - betänkande
+  - interpellation
+  - skriftlig fråga
+  - KU-anmälan
+  - kammaren
+  - frågestund
+  - partiledardebatt
+  - interpellationsdebatt
+mail_trigger_words:
+  - pressinbjudan
+  - pressträff
+  - ackreditering
+  - press
+  - media
+  - RSVP
+  - välkommen
+  - inbjudan
+  - föranmälan
+  - deadline
+  - senast
+  - embargo
+  - intervju
+  - fototillfälle
+  - pressvisning
+sweden_relevance_terms:
+  - Sverige
+  - svensk
+  - svenskar
+  - svenska
+  - Stockholm
+  - Göteborg
+  - Malmö
+  - Uppsala
+  - Skåne
+  - Arlanda
+  - Regeringen
+  - Riksdagen
+  - svensk minister
+  - svenska medborgare
+  - svenska turister
+  - svensk ambassad
+foreign_low_relevance_terms:
+  - Maldiverna
+  - USA
+  - Trump
+  - Litauen
+  - Maldiverna
+  - Thailand
+  - Spanien
+  - Frankrike
+  - Italien
+  - Storbritannien
+  - Kina
+  - Indien
+  - Australien
+major_visual_accident_terms:
+  - dödsolycka
+  - explosion
+  - storbrand
+  - evakuering
+  - masskrock
+  - tågolycka
+  - flygkrasch
+  - attentat
+  - terror
+  - upplopp
+  - demonstration
+  - översvämning
+  - extremväder

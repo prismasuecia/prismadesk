@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="status-grid" aria-label="Desk status">
+    <div>
+      <span class="label">Senast uppdaterad</span>
+      <strong>{{ latest_run["finished_at"] if latest_run and latest_run["finished_at"] else "Inte körd ännu" }}</strong>
+    </div>
+    <div>
+      <span class="label">{{ "Fynd i senaste körning" if view != "all" else "Fynd i databasen" }}</span>
+      <strong>{{ total_items }}</strong>
+    </div>
+    <div>
+      <span class="label">Rödalarm</span>
+      <strong>{{ red_alerts }}</strong>
+    </div>
+    <div>
+      <span class="label">Status</span>
+      <strong>{{ latest_run["status"] if latest_run else "Väntar" }}</strong>
+    </div>
+  </section>
+
+  {% if message %}
+    <p class="flash">{{ message }}</p>
+  {% endif %}
+
+  <nav class="view-switch" aria-label="Välj desk-vy">
+    <a href="{{ url_for('dashboard', view='latest') }}" aria-current="{{ 'page' if view != 'all' else 'false' }}">Senaste körning</a>
+    <a href="{{ url_for('dashboard', view='all') }}" aria-current="{{ 'page' if view == 'all' else 'false' }}">Alla sparade fynd</a>
+  </nav>
+
+  {% for key, section in sections.items() %}
+    <section class="desk-section desk-section--{{ key }}">
+      <div class="section-heading">
+        <h2>{{ section.title }}</h2>
+        <span>{{ section["items"]|length }}</span>
+      </div>
+
+      {% if section["items"] %}
+        <div class="cards">
+          {% for item in section["items"] %}
+            {% include "item.html" %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">Inga fynd i denna sektion just nu.</p>
+      {% endif %}
+    </section>
+  {% endfor %}
+
+  <section class="desk-section desk-section--log">
+    <div class="section-heading">
+      <h2>LOGG: senaste uppdatering</h2>
+    </div>
+    {% if latest_run %}
+      <pre class="run-log">{{ latest_run["errors"] or "Inga fel rapporterade." }}</pre>
+    {% else %}
+      <p class="empty">Tryck på UPPDATERA DESK för första körningen.</p>
+    {% endif %}
+  </section>
+{% endblock %}

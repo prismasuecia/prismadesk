@@ -1,0 +1,66 @@
+<article class="item-card priority-{{ item['priority']|lower }}">
+  <div class="item-card__top">
+    <span class="badge">{{ item["priority"] }}</span>
+    <span class="desk">{{ item["desk"] }}</span>
+  </div>
+
+  <h3>{{ item["title"] }}</h3>
+
+  <dl class="meta">
+    <div>
+      <dt>Källa</dt>
+      <dd>{{ item["source_name"] }}</dd>
+    </div>
+    <div>
+      <dt>Datum</dt>
+      <dd>{{ item["published_at"] or item["fetched_at"] }}</dd>
+    </div>
+    <div>
+      <dt>Tidsläge</dt>
+      <dd>{{ (item["raw_json"] | from_json).get("temporal_status", "UNKNOWN") }}</dd>
+    </div>
+    <div>
+      <dt>Åtgärd</dt>
+      <dd>{{ item["action_recommendation"] }}</dd>
+    </div>
+    <div>
+      <dt>Prisma-status</dt>
+      <dd>{{ item["prisma_status"] }}</dd>
+    </div>
+    <div>
+      <dt>Fysisk närvaro</dt>
+      <dd>{{ "Ja" if item["physical_presence"] else "Nej" }}</dd>
+    </div>
+    <div>
+      <dt>Ackreditering</dt>
+      <dd>
+        {% if item["accreditation_needed"] is none %}
+          Okänt
+        {% elif item["accreditation_needed"] %}
+          Ja
+        {% else %}
+          Nej
+        {% endif %}
+      </dd>
+    </div>
+  </dl>
+
+  <p class="why">{{ (item["raw_json"] | from_json).get("why_it_matters", item["summary"] or "Ingen motivering sparad.") }}</p>
+
+  {% set image_suggestions = (item["raw_json"] | from_json).get("image_suggestions", []) %}
+  {% if image_suggestions %}
+    <div class="image-suggestions">
+      <h4>Bildförslag</h4>
+      <p>{{ (item["raw_json"] | from_json).get("zuma_image_angle", "Möjliga bilder kopplade till nyhetsläget.") }}</p>
+      <ul>
+        {% for suggestion in image_suggestions %}
+          <li>{{ suggestion }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if item["url"] %}
+    <a class="source-link" href="{{ item['url'] }}" target="_blank" rel="noreferrer">Öppna källa</a>
+  {% endif %}
+</article>
