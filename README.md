@@ -32,6 +32,27 @@ python app.py
 
 http://127.0.0.1:5050
 
+## Publicera på Render
+
+1. Gå till Render och välj **New Web Service**.
+2. Koppla GitHub-repot `prismasuecia/prismadesk`.
+3. Render kan läsa `render.yaml` automatiskt.
+4. Kontrollera att startkommandot är:
+
+```bash
+gunicorn app:app
+```
+
+5. Lägg in miljövariabler under **Environment** om de behövs.
+
+```bash
+PRISMA_SITE_URL=https://www.prismasuecia.se
+ENABLE_MAIL=false
+ENABLE_OPENAI=false
+```
+
+Första deployen använder SQLite på serverns filsystem. På gratisplaner kan databasen nollställas vid omstart eller ny deploy. För permanent drift bör Prisma Desk senare få Render Disk, Postgres eller annan persistent lagring.
+
 ## Testa reglerna
 
 ```bash

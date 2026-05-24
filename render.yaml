@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: prisma-desk
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PRISMA_SITE_URL
+        value: https://www.prismasuecia.se
+      - key: ENABLE_MAIL
+        value: "false"
+      - key: ENABLE_OPENAI
+        value: "false"
+      - key: PYTHON_VERSION
+        value: 3.11.9

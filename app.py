@@ -1,5 +1,6 @@
-from collections import OrderedDict
 import json
+import os
+from collections import OrderedDict
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, url_for
@@ -120,4 +121,6 @@ def update():
 
 if __name__ == "__main__":
     database.init_db()
-    app.run(host="127.0.0.1", port=5050, debug=True)
+    port = int(os.getenv("PORT", "5050"))
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug)
