@@ -1,9 +1,10 @@
 import json
 import os
+import secrets
 from collections import OrderedDict
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, session, url_for
 
 from desk import database
 from desk.update_runner import run_update
@@ -11,6 +12,7 @@ from desk.update_runner import run_update
 
 load_dotenv()
 app = Flask(__name__)
+app.secret_key = os.getenv("PRISMA_DESK_SECRET_KEY") or os.getenv("PRISMA_DESK_PASSWORD") or "local-dev-only"
 
 
 SECTIONS = OrderedDict(
@@ -52,6 +54,35 @@ def row_to_dict(row):
     return dict(row)
 
 
+def auth_required() -> bool:
+    return bool(os.getenv("PRISMA_DESK_PASSWORD"))
+
+
+def is_authenticated() -> bool:
+    return not auth_required() or bool(session.get("authenticated"))
+
+
+def require_auth():
+    if not is_authenticated():
+        return redirect(url_for("login", next=request.path))
+    return None
+
+
+@app.context_processor
+def auth_context():
+    return {
+        "auth_required": auth_required(),
+        "is_authenticated": is_authenticated(),
+    }
+
+
+@app.after_request
+def add_private_headers(response):
+    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.template_filter("from_json")
 def from_json(value):
     if not value:
@@ -89,8 +120,32 @@ def build_sections(items):
     return grouped
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not auth_required():
+        return redirect(url_for("dashboard"))
+    error = ""
+    if request.method == "POST":
+        expected = os.getenv("PRISMA_DESK_PASSWORD", "")
+        submitted = request.form.get("password", "")
+        if secrets.compare_digest(submitted, expected):
+            session["authenticated"] = True
+            return redirect(request.args.get("next") or url_for("dashboard"))
+        error = "Fel lösenord."
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route("/", methods=["GET"])
 def dashboard():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
     database.init_db()
     latest_run = database.latest_run()
     view = request.args.get("view", "latest")
@@ -112,6 +167,9 @@ def dashboard():
 
 @app.route("/update", methods=["POST"])
 def update():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
     result = run_update()
     message = f"Uppdatering klar: {result['saved']} nya sparade, {result['found']} fynd analyserade, {result['red_alerts']} rödalarm."
     if result["errors"]:

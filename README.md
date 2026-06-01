@@ -32,6 +32,37 @@ python app.py
 
 http://127.0.0.1:5050
 
+## Privat online-version
+
+Prisma Desk kan köras online bakom lösenord så att du kan öppna den från mobilen ibland. Sätt alltid lösenord i hostingmiljön:
+
+```bash
+PRISMA_DESK_PASSWORD=ett-långt-eget-lösenord
+PRISMA_DESK_SECRET_KEY=en-lång-slumpad-hemlighet
+PRISMA_SITE_URL=https://www.prismasuecia.se
+ENABLE_MAIL=false
+ENABLE_OPENAI=false
+```
+
+När `PRISMA_DESK_PASSWORD` är satt kräver dashboarden inloggning. Appen skickar även `noindex`-headers och meta-taggar så sökmotorer inte ska indexera sidan.
+
+### Render
+
+Repo:t innehåller `render.yaml`, så Render kan skapa en webbtjänst direkt från GitHub.
+
+1. Skapa **New Web Service** på Render.
+2. Koppla `prismasuecia/prismadesk`.
+3. Sätt `PRISMA_DESK_PASSWORD` under **Environment**.
+4. Deploya.
+
+Startkommandot är:
+
+```bash
+gunicorn app:app
+```
+
+Obs: gratisplaner kan ha temporärt filsystem. SQLite-databasen kan därför nollställas vid omstart eller ny deploy. För längre drift bör appen senare få persistent disk eller Postgres.
+
 ## Gammal MacBook som Prisma Desk-skärm
 
 Det rekommenderade lokala upplägget är att låta en gammal MacBook köra Prisma Desk självständigt:

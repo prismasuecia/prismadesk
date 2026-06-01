@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="login-panel" aria-label="Logga in">
+    <div>
+      <span class="label">Privat desk</span>
+      <h2>Logga in</h2>
+      <p>Prisma Desk är lösenordsskyddad.</p>
+    </div>
+
+    {% if error %}
+      <p class="flash flash--error">{{ error }}</p>
+    {% endif %}
+
+    <form class="login-form" method="post">
+      <label for="password">Lösenord</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" autofocus required />
+      <button class="update-button" type="submit">Öppna desk</button>
+    </form>
+  </section>
+{% endblock %}

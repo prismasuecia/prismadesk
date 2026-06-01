@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
     <title>Prisma Desk</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
@@ -12,9 +13,18 @@
         <p class="eyebrow">Prisma Suecia / ZUMA Press</p>
         <h1>Prisma Desk</h1>
       </div>
-      <form action="{{ url_for('update') }}" method="post">
-        <button class="update-button" type="submit" data-update-button>UPPDATERA DESK</button>
-      </form>
+      {% if is_authenticated %}
+        <div class="topbar-actions">
+          <form action="{{ url_for('update') }}" method="post">
+            <button class="update-button" type="submit" data-update-button>UPPDATERA DESK</button>
+          </form>
+          {% if auth_required %}
+            <form action="{{ url_for('logout') }}" method="post">
+              <button class="ghost-button" type="submit">Logga ut</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endif %}
     </header>
 
     <main>
