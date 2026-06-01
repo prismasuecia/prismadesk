@@ -32,26 +32,72 @@ python app.py
 
 http://127.0.0.1:5050
 
-## Publicera på Render
+## Gammal MacBook som Prisma Desk-skärm
 
-1. Gå till Render och välj **New Web Service**.
-2. Koppla GitHub-repot `prismasuecia/prismadesk`.
-3. Render kan läsa `render.yaml` automatiskt.
-4. Kontrollera att startkommandot är:
+Det rekommenderade lokala upplägget är att låta en gammal MacBook köra Prisma Desk självständigt:
+
+- servern startar automatiskt vid inloggning
+- sidan öppnas i webbläsaren
+- MacBooken står på skrivbordet som newsroom-monitor
+- systemet uppdateras bara när du trycker på `UPPDATERA DESK`
+
+### Installera på MacBooken
+
+1. Klona eller ladda ner GitHub-repot på MacBooken.
+2. Gå in i projektmappen.
+3. Kör:
 
 ```bash
-gunicorn app:app
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+./scripts/install_mac_autostart.sh
 ```
 
-5. Lägg in miljövariabler under **Environment** om de behövs.
+4. Öppna dashboarden:
 
 ```bash
-PRISMA_SITE_URL=https://www.prismasuecia.se
-ENABLE_MAIL=false
-ENABLE_OPENAI=false
+./scripts/open_prisma_desk.command
 ```
 
-Första deployen använder SQLite på serverns filsystem. På gratisplaner kan databasen nollställas vid omstart eller ny deploy. För permanent drift bör Prisma Desk senare få Render Disk, Postgres eller annan persistent lagring.
+Efter installation startar servern automatiskt vid inloggning och hålls igång av macOS `launchd`.
+
+### Kontrollera servern
+
+```bash
+launchctl list | grep prismadesk
+curl -I http://127.0.0.1:5050/
+```
+
+Loggar finns här:
+
+```bash
+logs/prisma-desk.out.log
+logs/prisma-desk.err.log
+```
+
+### Stoppa autostart
+
+```bash
+launchctl unload ~/Library/LaunchAgents/se.prismasuecia.prismadesk.plist
+```
+
+### Starta igen
+
+```bash
+launchctl load ~/Library/LaunchAgents/se.prismasuecia.prismadesk.plist
+```
+
+### Mac-inställningar för desk-skärm
+
+- Ha laddaren inkopplad.
+- Stäng av viloläge när datorn har ström.
+- Lägg `scripts/open_prisma_desk.command` i **System Settings → General → Login Items**.
+- Sätt Safari/Chrome i helskärm med Prisma Desk öppet.
+- Stäng av störande notiser eller använd Fokus-läge.
+- Aktivera automatisk inloggning om MacBooken bara ska vara desk-skärm.
+- Starta om MacBooken en gång och kontrollera att sidan kommer upp igen.
 
 ## Testa reglerna
 

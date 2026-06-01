@@ -9,6 +9,25 @@ from desk.models import NewsItem
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+SWEDISH_MONTHS = [
+    "",
+    "januari",
+    "februari",
+    "mars",
+    "april",
+    "maj",
+    "juni",
+    "juli",
+    "augusti",
+    "september",
+    "oktober",
+    "november",
+    "december",
+]
+
+
+def swedish_date(value: datetime) -> str:
+    return f"{value.day} {SWEDISH_MONTHS[value.month]}"
 
 
 class ClassifierTest(unittest.TestCase):
@@ -35,7 +54,7 @@ class ClassifierTest(unittest.TestCase):
 
     def test_press_meeting_about_labour_migration_is_acute_prisma(self):
         tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
-        event_date = f"{tomorrow.day} maj"
+        event_date = swedish_date(tomorrow)
         item = NewsItem(
             source_name="Regeringen pressmeddelanden web",
             source_url="https://www.regeringen.se/pressmeddelanden/",
@@ -298,12 +317,13 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json["matched_terms"]["zuma_picture_value"])
 
     def test_future_event_date_overrides_older_publish_date_for_press_briefing(self):
+        future_event = datetime.now(timezone.utc) + timedelta(days=2)
         item = NewsItem(
             source_name="Regeringen statsministern",
             source_url="https://www.regeringen.se",
             title="Statsministern tar emot Natos generalsekreterare Mark Rutte",
             summary=(
-                "Tisdag den 26 maj tar statsminister Ulf Kristersson emot Natos "
+                f"Tisdag den {swedish_date(future_event)} tar statsminister Ulf Kristersson emot Natos "
                 "generalsekreterare Mark Rutte. I samband med besöket hålls en gemensam "
                 "pressbriefing i Revinge, Skåne."
             ),
