@@ -18,3 +18,15 @@ services:
         sync: false
       - key: PRISMA_DESK_SECRET_KEY
         generateValue: true
+      - key: PRISMA_UPDATE_MAX_SECONDS
+        value: "24"
+      - key: PRISMA_SOURCE_LIMIT
+        value: "16"
+      - key: PRISMA_RSS_TIMEOUT
+        value: "5"
+      - key: PRISMA_WEB_TIMEOUT
+        value: "5"
+      - key: PRISMA_ICAL_TIMEOUT
+        value: "6"
+      - key: PRISMA_SITE_TIMEOUT
+        value: "5"

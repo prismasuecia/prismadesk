@@ -1,10 +1,17 @@
+import os
+
 import feedparser
+import requests
 
 from desk.models import NewsItem
+from feeds.web_reader import HEADERS
 
 
 def read_rss_source(source: dict) -> list[NewsItem]:
-    parsed = feedparser.parse(source["url"])
+    timeout = int(os.getenv("PRISMA_RSS_TIMEOUT", "8"))
+    response = requests.get(source["url"], headers=HEADERS, timeout=timeout)
+    response.raise_for_status()
+    parsed = feedparser.parse(response.content)
     items: list[NewsItem] = []
 
     for entry in parsed.entries[:20]:

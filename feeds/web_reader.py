@@ -1,5 +1,7 @@
 from urllib.parse import urljoin
+import os
 import re
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -140,7 +142,8 @@ def _read_regeringen_source(source: dict, soup: BeautifulSoup) -> list[NewsItem]
     return items
 
 
-def read_web_source(source: dict, timeout: int = 12) -> list[NewsItem]:
+def read_web_source(source: dict, timeout: Optional[int] = None) -> list[NewsItem]:
+    timeout = timeout or int(os.getenv("PRISMA_WEB_TIMEOUT", "8"))
     response = requests.get(source["url"], headers=HEADERS, timeout=timeout)
     response.raise_for_status()
     if not response.encoding or response.encoding.lower() in {"iso-8859-1", "latin-1"}:

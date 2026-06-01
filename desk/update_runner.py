@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import yaml
+import os
+import time
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -24,7 +26,12 @@ def load_yaml(path: Path) -> dict:
 
 
 def load_sources() -> list[dict]:
-    return load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
+    sources = load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
+    default_limit = "16" if os.getenv("PRISMA_DESK_PASSWORD") else "0"
+    limit = int(os.getenv("PRISMA_SOURCE_LIMIT", default_limit) or "0")
+    if limit > 0:
+        return sources[:limit]
+    return sources
 
 
 def fetch_source(source: dict) -> list[NewsItem]:
@@ -39,6 +46,9 @@ def run_update() -> dict:
     load_dotenv(BASE_DIR / ".env")
     database.init_db()
     run_id = database.start_run()
+    started = time.monotonic()
+    default_max_seconds = "24" if os.getenv("PRISMA_DESK_PASSWORD") else "0"
+    max_seconds = float(os.getenv("PRISMA_UPDATE_MAX_SECONDS", default_max_seconds) or "0")
     errors: list[str] = []
     all_items: list[NewsItem] = []
     prisma_articles = []
@@ -52,6 +62,11 @@ def run_update() -> dict:
             errors.append(f"Prisma site: {exc}")
 
         for source in load_sources():
+            if max_seconds and time.monotonic() - started > max_seconds:
+                errors.append(
+                    f"Tidsbudget nådd efter {int(max_seconds)} sekunder. Kör igen för fler källor."
+                )
+                break
             try:
                 all_items.extend(fetch_source(source))
             except Exception as exc:

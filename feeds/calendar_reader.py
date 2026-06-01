@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import os
+from typing import Optional
 from datetime import datetime, timezone
 from urllib.parse import urljoin
 
@@ -77,7 +79,8 @@ def _event_blocks(text: str) -> list[dict[str, str]]:
     return events
 
 
-def read_ical_source(source: dict, timeout: int = 15) -> list[NewsItem]:
+def read_ical_source(source: dict, timeout: Optional[int] = None) -> list[NewsItem]:
+    timeout = timeout or int(os.getenv("PRISMA_ICAL_TIMEOUT", "8"))
     response = requests.get(source["url"], headers=HEADERS, timeout=timeout)
     response.raise_for_status()
 

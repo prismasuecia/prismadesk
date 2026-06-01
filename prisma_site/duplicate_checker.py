@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import os
 from urllib.parse import urljoin
 
 import requests
@@ -29,7 +30,8 @@ def keywords_for(text: str) -> set[str]:
 
 
 def fetch_prisma_articles(site_url: str, limit: int = 40) -> list[PrismaArticle]:
-    response = requests.get(site_url, headers=HEADERS, timeout=12)
+    timeout = int(os.getenv("PRISMA_SITE_TIMEOUT", "6"))
+    response = requests.get(site_url, headers=HEADERS, timeout=timeout)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
     articles: list[PrismaArticle] = []
