@@ -64,6 +64,10 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "omsorg",
     "vårdskandal",
     "Linda Lindberg",
+    "nationella säkerhetsrådgivaren",
+    "säkerhetsrådgivaren",
+    "säkerhetsråd",
+    "nationell säkerhet",
     "AI",
     "artificiell intelligens",
     "ansiktsigenkänning",
@@ -163,7 +167,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["valmanifest", "valkampanj", "valupptakt", "partiledare", "partiledartal"]):
+    if any(term.lower() in lowered for term in ["valmanifest", "valkampanj", "valupptakt", "partiledare", "partiledartal", "möter journalister", "träffar journalister"]):
         suggestions.extend(
             [
                 "Partiledaren vid pressträffen, gärna med valmanifest, partisymboler, podie eller pressuppbåd i bild.",
@@ -334,6 +338,21 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and (item.category == "politics" or election_terms)
         and (election_terms or zuma_picture_subject_terms)
     )
+    political_media_availability = bool(
+        (item.category == "politics" or election_terms)
+        and election_terms
+        and _contains_any(
+            text,
+            [
+                "möter journalister",
+                "träffar journalister",
+                "kommenterar",
+                "intervju",
+                "medieträff",
+                "riksdagen",
+            ],
+        )
+    )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family"}:
@@ -350,15 +369,17 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if political_press_event and (stockholm_terms or "stockholm" in text.lower() or "stockholm" in item.source_name.lower()):
+    if (political_press_event or political_media_availability) and (
+        stockholm_terms or "stockholm" in text.lower() or "stockholm" in item.source_name.lower()
+    ):
         item.priority = "RED"
         item.desk = "ZUMA" if not specific_prisma_terms else "BOTH"
         item.physical_presence = True
         item.action_recommendation = "RING_MAILA_NU"
         item.raw_json["why_it_matters"] = (
-            "Partiledare eller valmanifest i Stockholm: tydligt ZUMA-bildläge under valrörelsen."
+            "Partiledare, valrörelse eller politisk medieträff i Stockholm: tydligt ZUMA-bildläge."
         )
-    elif political_press_event:
+    elif political_press_event or political_media_availability:
         item.priority = "ORANGE"
         item.desk = "ZUMA" if not specific_prisma_terms else "BOTH"
         item.physical_presence = True

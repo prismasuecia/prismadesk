@@ -154,6 +154,31 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("äldre", " ".join(item.raw_json.get("image_suggestions", [])).lower())
 
+    def test_party_leader_media_availability_in_riksdagen_is_zuma_picture_alert(self):
+        item = NewsItem(
+            source_name="Socialdemokraterna press",
+            source_url="https://www.socialdemokraterna.se/vart-parti/press",
+            title="Magdalena Andersson kommenterar nationella säkerhetsrådgivaren",
+            summary=(
+                "Stockholm, Sverige. Socialdemokraternas partiledare Magdalena Andersson "
+                "kommenterar att partiet tänker avskaffa den nationella säkerhetsrådgivaren "
+                "om de får bilda regering efter valet i höst, när hon möter journalister i riksdagen."
+            ),
+            category="politics",
+            url="https://www.socialdemokraterna.se/press/magdalena-andersson-sakerhetsradgivaren",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("politisk medieträff", item.raw_json.get("why_it_matters", ""))
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",
