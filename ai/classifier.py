@@ -46,6 +46,17 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "invandrare",
     "barnfattigdom",
     "funktionsnedsättning",
+    "barn",
+    "barns hälsa",
+    "barns trygghet",
+    "digitala miljöer",
+    "åldersgräns",
+    "sociala medier",
+    "skärmtid",
+    "unga",
+    "ungdomar",
+    "socialminister",
+    "Jakob Forssmed",
     "AI",
     "artificiell intelligens",
     "ansiktsigenkänning",
@@ -115,6 +126,15 @@ def image_suggestions_for_item(
             [
                 "Exteriörer vid berörd myndighet, till exempel Försäkringskassan, Skatteverket eller Migrationsverket.",
                 "Neutrala vardagsbilder på barnfamiljer, bostadsområden eller myndighetskontakt utan att identifiera utsatta personer.",
+            ]
+        )
+
+    if any(term.lower() in lowered for term in ["barns hälsa", "barns trygghet", "digitala miljöer", "åldersgräns", "sociala medier", "skärmtid"]):
+        suggestions.extend(
+            [
+                "Barn och unga med mobiltelefoner i neutral offentlig miljö, fotograferat respektfullt utan identifierande närbilder.",
+                "Mobilskärmar, sociala medier-symbolik eller händer med telefon som generell bild om digital vardag.",
+                "Socialdepartementet, Regeringskansliet eller pressträffsmiljö med ansvarig minister som politisk bild.",
             ]
         )
 

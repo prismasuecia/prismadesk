@@ -104,6 +104,31 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("ZUMA-bildläge", item.raw_json.get("why_it_matters", ""))
 
+    def test_digital_child_safety_press_meeting_is_prisma_and_picture_alert(self):
+        item = NewsItem(
+            source_name="Regeringen pressmeddelanden",
+            source_url="https://www.regeringen.se/pressmeddelanden/",
+            title="Pressträff åldersgräns digitala miljöer",
+            summary=(
+                "Stockholm, Sverige. Socialminister Jakob Forssmed tar emot "
+                "delbetänkandet En åldersgräns till skydd för barns hälsa och "
+                "trygghet i digitala miljöer under en pressträff."
+            ),
+            category="government",
+            url="https://www.regeringen.se/pressmeddelanden/2026/06/presstraff-aldersgrans-digitala-miljoer/",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertIn(item.priority, {"RED", "ORANGE"})
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("digital", " ".join(item.raw_json.get("image_suggestions", [])).lower())
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",
