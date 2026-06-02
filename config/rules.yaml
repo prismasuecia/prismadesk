@@ -25,6 +25,12 @@ red_alert_topics:
   - Försvarsmakten
   - Östersjön
   - säkerhet
+  - civilbefolkningen
+  - civilt försvar
+  - civil beredskap
+  - beredskap
+  - varningssystem
+  - SE Alert
   - militär
   - Ukraina
   - Ryssland
@@ -99,6 +105,14 @@ zuma_terms:
   - militär ceremoni
   - veteraner
   - talmannen
+  - civilbefolkningen
+  - civilt försvar
+  - civil beredskap
+  - beredskap
+  - varningssystem
+  - SE Alert
+  - mobil
+  - mobiltelefon
   - Stockholm Marathon
   - maraton
   - marathon
@@ -124,6 +138,9 @@ zuma_picture_event_terms:
   - fototillfälle
   - pressvisning
   - bilateralt möte
+  - varningssystem
+  - SE Alert
+  - mobilvarning
   - statsbesök
   - demonstration
   - manifestation
@@ -329,6 +346,15 @@ prisma_terms:
   - personuppgifter
   - rättssäkerhet
   - brottsbekämpning
+  - civilbefolkningen
+  - civilt försvar
+  - civil beredskap
+  - krisberedskap
+  - beredskap
+  - varningssystem
+  - SE Alert
+  - VMA
+  - mobilvarning
   - socialminister
   - Jakob Forssmed
   - barn

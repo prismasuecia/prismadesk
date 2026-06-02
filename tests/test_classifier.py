@@ -275,6 +275,32 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("försvarsceremoni", item.raw_json.get("why_it_matters", ""))
 
+    def test_civil_alert_press_meeting_is_prisma_and_zuma_picture_event(self):
+        item = NewsItem(
+            source_name="TT bildsignal",
+            source_url="https://example.test/tt",
+            title="Pressträff varningssystem till civilbefolkningen",
+            summary=(
+                "Stockholm, Sverige. Exemplet på hur varningssystemet, SE Alert, "
+                "till civilbefolkningen kommer att se ut på mobilen presenterades "
+                "under en pressträff."
+            ),
+            category="government",
+            url="https://example.test/se-alert-civilbefolkningen",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("mobil", " ".join(item.raw_json.get("image_suggestions", [])).lower())
+        self.assertIn("civil varning", item.raw_json.get("why_it_matters", ""))
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",

@@ -74,6 +74,15 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "säkerhetsrådgivaren",
     "säkerhetsråd",
     "nationell säkerhet",
+    "civilbefolkningen",
+    "civilt försvar",
+    "civil beredskap",
+    "krisberedskap",
+    "beredskap",
+    "varningssystem",
+    "SE Alert",
+    "VMA",
+    "mobilvarning",
     "AI",
     "artificiell intelligens",
     "ansiktsigenkänning",
@@ -119,6 +128,15 @@ def image_suggestions_for_item(
                 "Poliser i yttre tjänst i Stockholm, fotograferade generellt och sakligt.",
                 "Riksdagen eller Polismyndighetens exteriörer som tydlig svensk myndighetsbild.",
                 "Människor i rörelse genom kamerabevakade offentliga miljöer, utan att peka ut enskilda personer.",
+            ]
+        )
+
+    if any(term.lower() in lowered for term in ["varningssystem", "se alert", "mobilvarning", "civilbefolkningen", "civilt försvar", "civil beredskap", "krisberedskap"]):
+        suggestions.extend(
+            [
+                "Närbild på mobiltelefon med varningssystem eller SE Alert-skärm, gärna i handen framför neutral stadsmiljö.",
+                "Pressträffsmiljö med mobilgrafik, ansvariga politiker eller myndighetsföreträdare och TV-kameror.",
+                "Generella beredskapsbilder: informationsskyltar, blåljus, sirener eller människor som tar emot mobilvarning.",
             ]
         )
 
@@ -421,6 +439,14 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and _contains_any(text, ["Veterandagen", "veterandag", "Sjöhistoriska", "militär ceremoni", "kransnedläggning"])
         and (red_people or red_topics or zuma_picture_subject_terms)
     )
+    civil_alert_picture_event = bool(
+        (stockholm_terms or "stockholm" in text.lower())
+        and has_press_event
+        and _contains_any(
+            text,
+            ["varningssystem", "SE Alert", "mobilvarning", "civilbefolkningen", "civilt försvar", "civil beredskap", "krisberedskap"],
+        )
+    )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family"}:
@@ -437,7 +463,15 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if stockholm_ceremony_picture_event:
+    if civil_alert_picture_event:
+        item.priority = "RED"
+        item.desk = "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "RING_MAILA_NU"
+        item.raw_json["why_it_matters"] = (
+            "Pressträff i Stockholm om civil varning eller beredskap: stark Prisma-story och konkret ZUMA-bildläge."
+        )
+    elif stockholm_ceremony_picture_event:
         item.priority = "RED"
         item.desk = "ZUMA" if not is_prisma_topic else "BOTH"
         item.physical_presence = True
