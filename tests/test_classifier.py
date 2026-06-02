@@ -650,7 +650,7 @@ class ClassifierTest(unittest.TestCase):
             ),
             category="parliament_decisions",
             url="https://www.riksdagen.se/sv/dokument-och-lagar/dokument/betankande/_hd01sfu21/",
-            published_at="Fri, 20 Feb 2026 10:11:57 +0200",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
             fetched_at=datetime.now(timezone.utc).isoformat(),
         )
 
@@ -662,6 +662,28 @@ class ClassifierTest(unittest.TestCase):
         self.assertIn(item.raw_json.get("temporal_status"), {"CURRENT", "UPCOMING"})
         self.assertIn("Riksdagen har sagt ja", item.raw_json.get("why_it_matters", ""))
         self.assertNotIn("detected_event_datetime", item.raw_json)
+
+    def test_old_riksdagen_decision_is_not_current_even_if_fetched_today(self):
+        item = NewsItem(
+            source_name="Riksdagen beslutade betänkanden",
+            source_url="https://data.riksdagen.se/",
+            title="Polisens användning av AI för ansiktsigenkänning i realtid",
+            summary=(
+                "Riksdagen sa ja till förslaget om Polisens användning av AI för "
+                "ansiktsigenkänning i realtid."
+            ),
+            category="parliament_decisions",
+            url="https://www.riksdagen.se/sv/dokument-och-lagar/dokument/betankande/_hd01juu28/",
+            published_at="Mon, 19 Jan 2026 14:17:55 +0200",
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("temporal_status"), "OLD")
+        self.assertNotEqual(item.action_recommendation, "PUBLICERA_IDAG")
+        self.assertIn(item.priority, {"YELLOW", "GREY"})
+        self.assertIn("Äldre", item.raw_json.get("why_it_matters", ""))
 
     def test_riksdagen_ai_face_recognition_proposal_is_prisma_publish_today(self):
         item = NewsItem(

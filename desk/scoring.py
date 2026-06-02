@@ -129,8 +129,6 @@ def effective_item_datetime(item: NewsItem, now: datetime | None = None) -> date
             flags=re.IGNORECASE,
         )
     )
-    if item.category == "parliament_decisions" and re.search(r"\bRiksdagen\s+sa\s+ja\b", item.text_for_analysis, flags=re.IGNORECASE):
-        return parse_item_datetime(item.fetched_at) or parse_item_datetime(item.published_at)
     if event_datetime and (
         not is_document_source
         and (
