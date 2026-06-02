@@ -124,7 +124,7 @@ def image_suggestions_for_item(
     lowered = text.lower()
     suggestions: list[str] = []
 
-    if any(term.lower() in lowered for term in ["ansiktsigenkänning", "ai-teknik", "artificiell intelligens", "övervakning", "biometrisk"]):
+    if _contains_any(text, ["ansiktsigenkänning", "ai-teknik", "artificiell intelligens", "övervakning", "biometrisk"]):
         suggestions.extend(
             [
                 "Övervakningskameror i offentlig Stockholmsmiljö, till exempel tunnelbana, stationer eller citystråk.",
@@ -134,7 +134,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["varningssystem", "se alert", "mobilvarning", "civilbefolkningen", "civilt försvar", "civil beredskap", "krisberedskap"]):
+    if _contains_any(text, ["varningssystem", "SE Alert", "mobilvarning", "civilbefolkningen", "civilt försvar", "civil beredskap", "krisberedskap"]):
         suggestions.extend(
             [
                 "Närbild på mobiltelefon med varningssystem eller SE Alert-skärm, gärna i handen framför neutral stadsmiljö.",
@@ -143,7 +143,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["polisen", "polismyndigheten", "brottsbekämpning"]):
+    if _contains_any(text, ["polisen", "polismyndigheten", "brottsbekämpning"]):
         suggestions.extend(
             [
                 "Polisfordon, polisstation eller uniformerade poliser i vardaglig stadsmiljö.",
@@ -151,7 +151,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["sl", "kollektivtrafik", "tåg", "väg", "trafik", "arlanda", "flyg"]):
+    if _contains_any(text, ["SL", "kollektivtrafik", "tåg", "väg", "trafik", "Arlanda", "flyg"]):
         suggestions.extend(
             [
                 "Resenärer, perronger, spärrlinjer eller trafikmiljöer i Stockholms län.",
@@ -159,7 +159,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["socialförsäkring", "barnbidrag", "bostadsbidrag", "försäkringskassan", "skatteverket", "migrationsverket"]):
+    if _contains_any(text, ["socialförsäkring", "barnbidrag", "bostadsbidrag", "Försäkringskassan", "Skatteverket", "Migrationsverket"]):
         suggestions.extend(
             [
                 "Exteriörer vid berörd myndighet, till exempel Försäkringskassan, Skatteverket eller Migrationsverket.",
@@ -167,7 +167,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["barns hälsa", "barns trygghet", "digitala miljöer", "åldersgräns", "sociala medier", "skärmtid"]):
+    if _contains_any(text, ["barns hälsa", "barns trygghet", "digitala miljöer", "åldersgräns", "sociala medier", "skärmtid"]):
         suggestions.extend(
             [
                 "Barn och unga med mobiltelefoner i neutral offentlig miljö, fotograferat respektfullt utan identifierande närbilder.",
@@ -176,7 +176,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["psykisk hälsa", "psykisk ohälsa", "mental hälsa", "barn och unga", "ungdomars hälsa", "elevhälsa"]):
+    if _contains_any(text, ["psykisk hälsa", "psykisk ohälsa", "mental hälsa", "barn och unga", "ungdomars hälsa", "elevhälsa"]):
         suggestions.extend(
             [
                 "Jakob Forssmed eller ansvarig politiker vid pressträff om barn och ungas psykiska hälsa.",
@@ -185,7 +185,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["äldreomsorg", "äldreboende", "övergrepp", "missförhållanden", "omsorg", "vårdskandal"]):
+    if _contains_any(text, ["äldreomsorg", "äldreboende", "övergrepp", "missförhållanden", "omsorg", "vårdskandal"]):
         suggestions.extend(
             [
                 "Partiföreträdare eller ansvarig politiker under pressträff, med tydligt pressuppbåd och podie.",
@@ -194,7 +194,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["arbetskraftsinvandring", "arbetstillstånd", "lönegolv", "migrationsminister"]):
+    if _contains_any(text, ["arbetskraftsinvandring", "arbetstillstånd", "lönegolv", "migrationsminister"]):
         suggestions.extend(
             [
                 "Migrationsverket, arbetsplatser eller citymiljöer med människor på väg till arbete som generell bild om arbetskraftsinvandring.",
@@ -203,7 +203,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["valmanifest", "valkampanj", "valupptakt", "partiledare", "partiledartal", "möter journalister", "träffar journalister"]):
+    if _contains_any(text, ["valmanifest", "valkampanj", "valupptakt", "partiledare", "partiledartal", "möter journalister", "träffar journalister"]):
         suggestions.extend(
             [
                 "Partiledaren vid pressträffen, gärna med valmanifest, partisymboler, podie eller pressuppbåd i bild.",
@@ -212,7 +212,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["stockholm marathon", "maraton", "marathon", "medaljutdelning", "målgång", "folkfest"]):
+    if _contains_any(text, ["Stockholm Marathon", "maraton", "marathon", "medaljutdelning", "målgång", "folkfest"]):
         suggestions.extend(
             [
                 "Målgång, medaljutdelning och löpare vid Stockholm Stadion med tydlig Stockholm-känsla.",
@@ -221,7 +221,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["fotbolls-vm", "fotbolls vm", "landslaget", "förbundskapten", "ledarstab", "spelarhotellet"]):
+    if _contains_any(text, ["fotbolls-VM", "fotbolls VM", "landslaget", "förbundskapten", "ledarstab", "spelarhotellet"]):
         suggestions.extend(
             [
                 "Landslagets ledarstab eller spelare vid pressbord, sponsorvägg eller spelarhotell inför VM.",
@@ -230,7 +230,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["veterandagen", "veterandag", "sjöhistoriska", "kransnedläggning", "militär ceremoni"]):
+    if _contains_any(text, ["Veterandagen", "veterandag", "Sjöhistoriska", "kransnedläggning", "militär ceremoni"]):
         suggestions.extend(
             [
                 "Statsminister, försvarsminister, talman och veteraner vid ceremonin, gärna med fanor eller honnör.",

@@ -18,7 +18,17 @@ app.secret_key = os.getenv("PRISMA_DESK_SECRET_KEY") or os.getenv("PRISMA_DESK_P
 SECTIONS = OrderedDict(
     [
         ("akut", {"title": "🔴🔴🔴 AKUT NU", "filter": lambda item: item["priority"] == "RED"}),
-        ("zuma", {"title": "🔴 ZUMA PRESS — bildmöjligheter", "filter": lambda item: item["desk"] in {"ZUMA", "BOTH"} and item["priority"] != "RED"}),
+        (
+            "zuma",
+            {
+                "title": "🔴 ZUMA PRESS — bildmöjligheter",
+                "filter": lambda item: (
+                    item["desk"] in {"ZUMA", "BOTH"}
+                    and item["priority"] != "RED"
+                    and from_json(item.get("raw_json")).get("temporal_status") not in {"OLD", "PAST_EVENT"}
+                ),
+            },
+        ),
         ("prisma", {"title": "🟠 PRISMA SUECIA — publicerbara stories", "filter": lambda item: item["desk"] in {"PRISMA", "BOTH"} and item["action_recommendation"] == "PUBLICERA_IDAG"}),
         ("press", {"title": "🟡 PRESSINBJUDNINGAR / ACKREDITERING", "filter": lambda item: item["accreditation_needed"] or item["deadline_detected"]}),
         ("community", {"title": "🔵 STOCKHOLM / COMMUNITY / KULTUR", "filter": lambda item: item["priority"] == "BLUE"}),

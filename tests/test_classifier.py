@@ -732,7 +732,30 @@ class ClassifierTest(unittest.TestCase):
         self.assertEqual(item.raw_json.get("temporal_status"), "OLD")
         self.assertNotEqual(item.action_recommendation, "PUBLICERA_IDAG")
         self.assertIn(item.priority, {"YELLOW", "GREY"})
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertFalse(item.physical_presence)
+        self.assertNotIn("image_suggestions", item.raw_json)
+        self.assertNotIn("access_guidance", item.raw_json)
         self.assertIn("Äldre", item.raw_json.get("why_it_matters", ""))
+
+    def test_old_building_rules_do_not_get_transport_image_suggestions(self):
+        item = NewsItem(
+            source_name="Riksdagen beslutade betänkanden",
+            source_url="https://data.riksdagen.se/",
+            title="Förenklade regler vid ändring av en byggnad",
+            summary="Riksdagen sa ja till förenklade regler vid ändring av en byggnad.",
+            category="parliament_decisions",
+            url="https://www.riksdagen.se/sv/dokument-och-lagar/dokument/betankande/_hd01cu39/",
+            published_at="Fri, 20 Feb 2026 16:44:27 +0200",
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("temporal_status"), "OLD")
+        self.assertNotIn("image_suggestions", item.raw_json)
+        self.assertNotIn("access_guidance", item.raw_json)
+        self.assertNotEqual(item.desk, "BOTH")
 
     def test_riksdagen_ai_face_recognition_proposal_is_prisma_publish_today(self):
         item = NewsItem(

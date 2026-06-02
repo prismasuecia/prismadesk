@@ -190,8 +190,15 @@ def apply_temporal_guardrails(item: NewsItem) -> NewsItem:
     if is_document_source and status == "OLD":
         if item.priority in {"RED", "ORANGE"}:
             item.priority = "YELLOW"
+        if item.desk in {"ZUMA", "BOTH"}:
+            item.desk = "PRISMA"
+        item.physical_presence = False
+        item.accreditation_needed = None
         if item.action_recommendation == "PUBLICERA_IDAG":
             item.action_recommendation = "FÖLJ_UPP"
+        item.raw_json.pop("image_suggestions", None)
+        item.raw_json.pop("zuma_image_angle", None)
+        item.raw_json.pop("access_guidance", None)
         item.raw_json["why_it_matters"] = (
             "Äldre riksdagsdokument. Publicera inte som ny nyhet utan ny utveckling, tydlig Prisma-vinkel eller uppdatering."
         )
