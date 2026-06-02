@@ -129,6 +129,30 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("digital", " ".join(item.raw_json.get("image_suggestions", [])).lower())
 
+    def test_child_mental_health_press_meeting_is_prisma_picture_alert(self):
+        item = NewsItem(
+            source_name="Kristdemokraterna press",
+            source_url="https://press.kristdemokraterna.se/",
+            title="KD pressträff om psykisk ohälsa",
+            summary=(
+                "Stockholm, Sverige. Jakob Forssmed håller pressträff om den fortsatta "
+                "planen för bättre psykisk hälsa för barn och unga."
+            ),
+            category="politics",
+            url="https://press.kristdemokraterna.se/presstraff-psykisk-ohalsa",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("psykisk", " ".join(item.raw_json.get("image_suggestions", [])).lower())
+
     def test_party_press_meeting_about_eldercare_abuse_is_prisma_picture_alert(self):
         item = NewsItem(
             source_name="Sverigedemokraterna press",

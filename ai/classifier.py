@@ -49,6 +49,12 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "barn",
     "barns hälsa",
     "barns trygghet",
+    "psykisk hälsa",
+    "psykisk ohälsa",
+    "mental hälsa",
+    "barn och unga",
+    "ungdomars hälsa",
+    "elevhälsa",
     "digitala miljöer",
     "åldersgräns",
     "sociala medier",
@@ -146,6 +152,15 @@ def image_suggestions_for_item(
                 "Barn och unga med mobiltelefoner i neutral offentlig miljö, fotograferat respektfullt utan identifierande närbilder.",
                 "Mobilskärmar, sociala medier-symbolik eller händer med telefon som generell bild om digital vardag.",
                 "Socialdepartementet, Regeringskansliet eller pressträffsmiljö med ansvarig minister som politisk bild.",
+            ]
+        )
+
+    if any(term.lower() in lowered for term in ["psykisk hälsa", "psykisk ohälsa", "mental hälsa", "barn och unga", "ungdomars hälsa", "elevhälsa"]):
+        suggestions.extend(
+            [
+                "Jakob Forssmed eller ansvarig politiker vid pressträff om barn och ungas psykiska hälsa.",
+                "Neutrala bilder på unga i skol- eller stadsmiljö, fotograferat respektfullt utan att peka ut sårbara personer.",
+                "Socialdepartementet, vårdmiljö eller skolmiljö som generell bild till psykisk hälsa-politiken.",
             ]
         )
 
