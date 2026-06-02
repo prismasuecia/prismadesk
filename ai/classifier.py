@@ -57,6 +57,13 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "ungdomar",
     "socialminister",
     "Jakob Forssmed",
+    "äldreomsorg",
+    "äldreboende",
+    "övergrepp",
+    "missförhållanden",
+    "omsorg",
+    "vårdskandal",
+    "Linda Lindberg",
     "AI",
     "artificiell intelligens",
     "ansiktsigenkänning",
@@ -135,6 +142,15 @@ def image_suggestions_for_item(
                 "Barn och unga med mobiltelefoner i neutral offentlig miljö, fotograferat respektfullt utan identifierande närbilder.",
                 "Mobilskärmar, sociala medier-symbolik eller händer med telefon som generell bild om digital vardag.",
                 "Socialdepartementet, Regeringskansliet eller pressträffsmiljö med ansvarig minister som politisk bild.",
+            ]
+        )
+
+    if any(term.lower() in lowered for term in ["äldreomsorg", "äldreboende", "övergrepp", "missförhållanden", "omsorg", "vårdskandal"]):
+        suggestions.extend(
+            [
+                "Partiföreträdare eller ansvarig politiker under pressträff, med tydligt pressuppbåd och podie.",
+                "Neutrala exteriörer vid äldreboende eller kommunal omsorgsmiljö, utan att identifiera boende eller anhöriga.",
+                "Omsorgsmiljöer, rullatorer, entréer eller kommunskyltar som respektfull generell bild om äldreomsorg.",
             ]
         )
 
@@ -310,6 +326,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             "Daniel Helldén",
             "Amanda Lind",
             "Johan Pehrson",
+            "Linda Lindberg",
         ],
     )
     political_press_event = bool(

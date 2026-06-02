@@ -129,6 +129,31 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("digital", " ".join(item.raw_json.get("image_suggestions", [])).lower())
 
+    def test_party_press_meeting_about_eldercare_abuse_is_prisma_picture_alert(self):
+        item = NewsItem(
+            source_name="Sverigedemokraterna press",
+            source_url="https://www.sd.se/press/",
+            title="SD pressträff övergrepp äldreomsorg",
+            summary=(
+                "Stockholm, Sverige. Sverigedemokraternas gruppledare Linda Lindberg "
+                "kommenterar uppgifterna om en SD-ledamot under en pressträff där SD "
+                "presenterar politiska förslag mot övergreppen inom äldreomsorgen."
+            ),
+            category="politics",
+            url="https://www.sd.se/press/presstraff-overgrepp-aldreomsorg/",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("äldre", " ".join(item.raw_json.get("image_suggestions", [])).lower())
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",
