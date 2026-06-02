@@ -127,6 +127,15 @@ def image_suggestions_for_item(
             ]
         )
 
+    if any(term.lower() in lowered for term in ["valmanifest", "valkampanj", "valupptakt", "partiledare", "partiledartal"]):
+        suggestions.extend(
+            [
+                "Partiledaren vid pressträffen, gärna med valmanifest, partisymboler, podie eller pressuppbåd i bild.",
+                "Bilder på kampanjmaterial, affischer, valsedlar eller partiets lokal/exteriör som visar valrörelsen konkret.",
+                "Journalister, kameror och politiker i Stockholmsmiljö som tydlig nyhetsbild från valrörelsen.",
+            ]
+        )
+
     if item.category in {"parliament_reports", "parliament_decisions", "parliament_propositions"} and (
         prisma_terms or zuma_terms
     ):
@@ -190,6 +199,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "youth_family",
         "media_stockholm",
         "media_economy",
+        "politics",
     })
 
     has_press_event = bool(
@@ -261,6 +271,32 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             flags=re.IGNORECASE,
         )
     )
+    election_terms = _contains_any(
+        text,
+        [
+            "valmanifest",
+            "valkampanj",
+            "valupptakt",
+            "riksdagsval",
+            "valet 2026",
+            "partiledare",
+            "partiledartal",
+            "Simona Mohamsson",
+            "Magdalena Andersson",
+            "Jimmie Åkesson",
+            "Nooshi Dadgostar",
+            "Ebba Busch",
+            "Muharrem Demirok",
+            "Daniel Helldén",
+            "Amanda Lind",
+            "Johan Pehrson",
+        ],
+    )
+    political_press_event = bool(
+        has_press_event
+        and (item.category == "politics" or election_terms)
+        and (election_terms or zuma_picture_subject_terms)
+    )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family"}:
@@ -277,7 +313,23 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if hard_red:
+    if political_press_event and (stockholm_terms or "stockholm" in text.lower() or "stockholm" in item.source_name.lower()):
+        item.priority = "RED"
+        item.desk = "ZUMA" if not specific_prisma_terms else "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "RING_MAILA_NU"
+        item.raw_json["why_it_matters"] = (
+            "Partiledare eller valmanifest i Stockholm: tydligt ZUMA-bildläge under valrörelsen."
+        )
+    elif political_press_event:
+        item.priority = "ORANGE"
+        item.desk = "ZUMA" if not specific_prisma_terms else "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "RING_MAILA_NU"
+        item.raw_json["why_it_matters"] = (
+            "Partipolitisk pressträff eller valhändelse med bildvärde. Kontrollera plats snabbt."
+        )
+    elif hard_red:
         item.priority = "RED"
         item.desk = "BOTH" if is_prisma_topic else "ZUMA"
         item.physical_presence = True

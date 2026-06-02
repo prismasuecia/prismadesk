@@ -19,6 +19,46 @@ sources:
     type: rss
     category: press_releases
     priority: red
+  - name: Liberalerna pressrum
+    url: https://www.liberalerna.se/pressrum
+    type: web
+    category: politics
+    priority: orange
+  - name: Moderaterna press
+    url: https://moderaterna.se/press/
+    type: web
+    category: politics
+    priority: orange
+  - name: Socialdemokraterna press
+    url: https://www.socialdemokraterna.se/vart-parti/press
+    type: web
+    category: politics
+    priority: orange
+  - name: Sverigedemokraterna press
+    url: https://www.sd.se/press/
+    type: web
+    category: politics
+    priority: orange
+  - name: Kristdemokraterna press
+    url: https://press.kristdemokraterna.se/
+    type: web
+    category: politics
+    priority: orange
+  - name: Vänsterpartiet pressrum
+    url: https://via.tt.se/pressrum/1863378/vansterpartiet
+    type: web
+    category: politics
+    priority: orange
+  - name: Centerpartiet press
+    url: https://www.centerpartiet.se/om-centerpartiet/kontakta-centerpartiet/centerpartiets-pressavdelning
+    type: web
+    category: politics
+    priority: orange
+  - name: Miljöpartiet press
+    url: https://www.mp.se/press/
+    type: web
+    category: politics
+    priority: orange
   - name: NATO events
     url: https://www.nato.int/en/news-and-events/articles/news
     type: web

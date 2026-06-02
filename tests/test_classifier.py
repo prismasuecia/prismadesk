@@ -79,6 +79,31 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("Akut Prisma-läge", item.raw_json.get("why_it_matters", ""))
 
+    def test_party_manifest_press_meeting_in_stockholm_is_zuma_picture_alert(self):
+        item = NewsItem(
+            source_name="Liberalerna pressrum",
+            source_url="https://www.liberalerna.se/pressrum",
+            title="Pressträff Liberalernas valmanifest",
+            summary=(
+                "Stockholm, Sverige. Partiledare Simona Mohamsson (L) håller en "
+                "pressträff om partiets valmanifest inför valet 2026."
+            ),
+            category="politics",
+            url="https://www.liberalerna.se/pressrum/presstraff-liberalernas-valmanifest",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json["matched_terms"]["zuma_picture_value"])
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("ZUMA-bildläge", item.raw_json.get("why_it_matters", ""))
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",

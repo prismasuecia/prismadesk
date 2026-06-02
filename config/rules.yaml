@@ -111,6 +111,10 @@ zuma_picture_event_terms:
   - militärövning
   - fartygsbesök
   - invigning
+  - valmanifest
+  - valkampanj
+  - valupptakt
+  - partiledartal
 zuma_picture_subject_terms:
   - NATO
   - Mark Rutte
@@ -131,6 +135,24 @@ zuma_picture_subject_terms:
   - marinen
   - fregatt
   - ubåt
+  - partiledare
+  - Simona Mohamsson
+  - Magdalena Andersson
+  - Jimmie Åkesson
+  - Nooshi Dadgostar
+  - Ebba Busch
+  - Muharrem Demirok
+  - Daniel Helldén
+  - Amanda Lind
+  - Johan Pehrson
+  - Liberalernas
+  - Moderaternas
+  - Socialdemokraternas
+  - Sverigedemokraternas
+  - Kristdemokraternas
+  - Vänsterpartiets
+  - Centerpartiets
+  - Miljöpartiets
 zuma_picture_place_terms:
   - Rosenbad
   - Riksdagens presscenter
@@ -235,6 +257,12 @@ prisma_terms:
   - personuppgifter
   - rättssäkerhet
   - brottsbekämpning
+  - valmanifest
+  - valkampanj
+  - riksdagsval
+  - valet 2026
+  - partiledare
+  - Simona Mohamsson
   - arbetsmarknad
   - Försäkringskassan
   - socialförsäkring
