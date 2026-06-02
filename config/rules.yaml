@@ -93,6 +93,12 @@ zuma_terms:
   - medaljutdelning
   - målgång
   - internationellt lopp
+  - fotbolls-VM
+  - fotbolls VM
+  - VM
+  - landslaget
+  - förbundskapten
+  - spelarhotellet
   - Skeppsbron
   - Rosenbad
   - Arlanda
@@ -115,6 +121,11 @@ zuma_picture_event_terms:
   - medaljutdelning
   - målgång
   - folkfest
+  - fotbolls-VM
+  - fotbolls VM
+  - landslaget
+  - ledarstab
+  - spelarhotellet
   - partiledardebatt
   - frågestund
   - särskild debatt
@@ -174,6 +185,10 @@ zuma_picture_subject_terms:
   - Vänsterpartiets
   - Centerpartiets
   - Miljöpartiets
+  - landslaget
+  - ledarstab
+  - förbundskapten
+  - Sebastian Larsson
 zuma_picture_place_terms:
   - Rosenbad
   - Riksdagens presscenter
@@ -184,6 +199,8 @@ zuma_picture_place_terms:
   - Stockholm Stadion
   - Stockholms stadion
   - Stadion
+  - Scandic Park
+  - spelarhotellet
   - Sergels torg
   - Kungsträdgården
   - Helsingborg
@@ -205,6 +222,7 @@ stockholm_priority_terms:
   - Stockholm Stadion
   - Stockholms stadion
   - Stadion
+  - Scandic Park
   - Sergels torg
   - Kungsträdgården
   - Kungliga slottet

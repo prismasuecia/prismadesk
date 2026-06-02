@@ -185,6 +185,15 @@ def image_suggestions_for_item(
             ]
         )
 
+    if any(term.lower() in lowered for term in ["fotbolls-vm", "fotbolls vm", "landslaget", "förbundskapten", "ledarstab", "spelarhotellet"]):
+        suggestions.extend(
+            [
+                "Landslagets ledarstab eller spelare vid pressbord, sponsorvägg eller spelarhotell inför VM.",
+                "Scandic Park, hotellentré, pressuppbåd och TV-kameror som visar landslagets VM-uppladdning i Stockholm.",
+                "Detaljer med landslagssymboler, träningskläder, mikrofoner och VM-relaterad pressmiljö.",
+            ]
+        )
+
     if item.category in {"parliament_reports", "parliament_decisions", "parliament_propositions"} and (
         prisma_terms or zuma_terms
     ):
@@ -366,7 +375,21 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         (stockholm_terms or "stockholm" in text.lower())
         and _contains_any(
             text,
-            ["Stockholm Marathon", "maraton", "marathon", "medaljutdelning", "målgång", "lopp", "folkfest"],
+            [
+                "Stockholm Marathon",
+                "maraton",
+                "marathon",
+                "medaljutdelning",
+                "målgång",
+                "lopp",
+                "folkfest",
+                "fotbolls-VM",
+                "fotbolls VM",
+                "landslaget",
+                "förbundskapten",
+                "ledarstab",
+                "spelarhotellet",
+            ],
         )
     )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
