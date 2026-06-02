@@ -248,6 +248,41 @@ def image_suggestions_for_item(
     return unique[:5]
 
 
+def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
+    lowered = text.lower()
+    guidance: list[str] = []
+
+    if any(term in lowered for term in ["partiledardebatt", "kulturhuset stadsteatern", "kulturhuset", "stadsteatern"]):
+        guidance.extend(
+            [
+                "Kontakta arrangörens presskontakt först: den som står bakom debatten styr oftast ackreditering och fotoposition.",
+                "Kontakta även Kulturhuset Stadsteaterns press/kommunikation om platsen, insläpp, pressplats och eventuella fotoregler.",
+                "Fråga uttryckligen om: pressackreditering, samlingstid, var fotografer får stå, om flash är tillåtet och om det finns möjlighet till bilder före/efter debatten.",
+            ]
+        )
+
+    if "riksdagen" in lowered or "riksdagens presscenter" in lowered:
+        guidance.append(
+            "Vid Riksdagen: kontrollera pressackreditering/presskort och kontakta Riksdagens presscenter om tillträde, fotoregler och samlingsplats."
+        )
+
+    if item.category == "politics" or any(term in lowered for term in ["partiet", "partiledare", "valmanifest", "valkampanj"]):
+        guidance.append(
+            "Kontakta partiets pressjour och be om fototillstånd, exakt plats, tider och om partiledaren kan fotograferas separat."
+        )
+
+    if any(term in lowered for term in ["marathon", "maraton", "fotbolls-vm", "landslaget", "spelarhotellet"]):
+        guidance.append(
+            "Vid sportevent: leta efter arrangörens media/press office och fråga om mediaackreditering, bib/pressväst, fotopositioner och mixed zone."
+        )
+
+    unique: list[str] = []
+    for item_text in guidance:
+        if item_text not in unique:
+            unique.append(item_text)
+    return unique[:5]
+
+
 def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     text = item.text_for_analysis
     normalized_title = item.title.strip().lower()
@@ -413,6 +448,26 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             ],
         )
     )
+    party_leader_debate_picture_event = bool(
+        (stockholm_terms or "stockholm" in text.lower())
+        and _contains_any(text, ["partiledardebatt"])
+        and (
+            zuma_picture_subject_terms
+            or _contains_any(
+                text,
+                [
+                    "Simona Mohamsson",
+                    "Magdalena Andersson",
+                    "Jimmie Åkesson",
+                    "Nooshi Dadgostar",
+                    "Ebba Busch",
+                    "Muharrem Demirok",
+                    "Daniel Helldén",
+                    "Amanda Lind",
+                ],
+            )
+        )
+    )
     stockholm_sports_picture_event = bool(
         (stockholm_terms or "stockholm" in text.lower())
         and _contains_any(
@@ -463,7 +518,16 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if civil_alert_picture_event:
+    if party_leader_debate_picture_event:
+        item.priority = "RED"
+        item.desk = "ZUMA" if not specific_prisma_terms else "BOTH"
+        item.physical_presence = True
+        item.accreditation_needed = True if item.accreditation_needed is None else item.accreditation_needed
+        item.action_recommendation = "SÖK_ACKREDITERING"
+        item.raw_json["why_it_matters"] = (
+            "Partiledardebatt i Stockholm: starkt valrörelse- och ZUMA-bildläge. Kontrollera ackreditering och fotoposition direkt."
+        )
+    elif civil_alert_picture_event:
         item.priority = "RED"
         item.desk = "BOTH"
         item.physical_presence = True
@@ -723,6 +787,10 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         )
         if has_zuma_illustration_value and item.desk == "PRISMA":
             item.desk = "BOTH"
+
+    access_guidance = access_guidance_for_item(item, text)
+    if access_guidance:
+        item.raw_json["access_guidance"] = access_guidance
 
     existing_why = item.raw_json.get("why_it_matters")
     item.raw_json.update(

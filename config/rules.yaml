@@ -179,6 +179,7 @@ zuma_picture_event_terms:
   - valkampanj
   - valupptakt
   - partiledartal
+  - partiledardebatt
 zuma_picture_subject_terms:
   - NATO
   - Mark Rutte
@@ -236,6 +237,9 @@ zuma_picture_place_terms:
   - Kungliga slottet
   - Sjöhistoriska museet
   - Sjöhistoriska
+  - Kulturhuset Stadsteatern
+  - Kulturhuset
+  - Stadsteatern
   - Arlanda
   - Stockholms central
   - Stockholm Stadion
@@ -270,6 +274,9 @@ stockholm_priority_terms:
   - Kungliga slottet
   - Sjöhistoriska museet
   - Sjöhistoriska
+  - Kulturhuset Stadsteatern
+  - Kulturhuset
+  - Stadsteatern
   - Södermalm
   - Norrmalm
   - Östermalm

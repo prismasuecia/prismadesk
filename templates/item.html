@@ -60,6 +60,18 @@
     </div>
   {% endif %}
 
+  {% set access_guidance = (item["raw_json"] | from_json).get("access_guidance", []) %}
+  {% if access_guidance %}
+    <div class="image-suggestions">
+      <h4>Tillstånd / ackreditering</h4>
+      <ul>
+        {% for guidance in access_guidance %}
+          <li>{{ guidance }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
   {% if item["url"] %}
     <a class="source-link" href="{{ item['url'] }}" target="_blank" rel="noreferrer">Öppna källa</a>
   {% endif %}

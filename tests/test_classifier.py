@@ -203,6 +203,32 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("politisk medieträff", item.raw_json.get("why_it_matters", ""))
 
+    def test_party_leader_debate_at_kulturhuset_requires_accreditation(self):
+        item = NewsItem(
+            source_name="TT bildsignal",
+            source_url="https://example.test/tt",
+            title="Partiledardebatt Kulturhuset Stadsteatern 2026",
+            summary=(
+                "Stockholm, Sverige. Utbildningsminister och Liberalernas partiledare "
+                "Simona Mohamsson under partiledardebatten på Kulturhuset Stadsteatern "
+                "i Stockholm."
+            ),
+            category="events",
+            url="https://example.test/partiledardebatt-kulturhuset",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertTrue(item.accreditation_needed)
+        self.assertEqual(item.action_recommendation, "SÖK_ACKREDITERING")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("access_guidance"))
+        self.assertIn("Kulturhuset", " ".join(item.raw_json.get("access_guidance", [])))
+
     def test_stockholm_marathon_medal_ceremony_is_zuma_picture_event(self):
         item = NewsItem(
             source_name="TT bildsignal",
