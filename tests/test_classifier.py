@@ -606,6 +606,29 @@ class ClassifierTest(unittest.TestCase):
         self.assertFalse(item.physical_presence)
         self.assertIn(item.action_recommendation, {"PUBLICERA_IDAG", "FÖLJ_UPP"})
 
+    def test_migration_center_visit_in_boden_is_not_zuma_physical_alert(self):
+        item = NewsItem(
+            source_name="Via TT",
+            source_url="https://via.tt.se/",
+            title="Besök Migrationsverkets mottagnings- och återvändandecenter i Boden",
+            summary=(
+                "Media bjuds in till besök på Migrationsverkets mottagnings- och "
+                "återvändandecenter i Boden. Nyheten rör migration och återvändande."
+            ),
+            category="press_releases",
+            url="https://via.tt.se/pressmeddelande/boden-migrationsverket",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("location_fit"), "UTANFÖR_STOCKHOLM")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertFalse(item.physical_presence)
+        self.assertNotEqual(item.priority, "RED")
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertNotIn("Polisfordon", " ".join(item.raw_json.get("image_suggestions", [])))
+
     def test_generic_parliament_question_time_is_ignored_without_prisma_topic(self):
         item = NewsItem(
             source_name="Riksdagen kalender kammaren",

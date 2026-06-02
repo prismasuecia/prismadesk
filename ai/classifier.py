@@ -35,6 +35,9 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "medborgarskap",
     "migration",
     "Migrationsverket",
+    "återvändande",
+    "återvändandecenter",
+    "mottagningscenter",
     "arbetskraftsinvandring",
     "arbetstillstånd",
     "lönegolv",
@@ -140,7 +143,7 @@ def image_suggestions_for_item(
             ]
         )
 
-    if any(term.lower() in lowered for term in ["polisen", "polismyndigheten", "brottsbekämpning", "säkerhet"]):
+    if any(term.lower() in lowered for term in ["polisen", "polismyndigheten", "brottsbekämpning"]):
         suggestions.extend(
             [
                 "Polisfordon, polisstation eller uniformerade poliser i vardaglig stadsmiljö.",
@@ -746,6 +749,19 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     elif is_outside_stockholm:
         item.raw_json["location_fit"] = "UTANFÖR_STOCKHOLM"
         outside_was_physical = item.physical_presence
+        outside_event_or_visit = bool(
+            _contains_any(
+                text,
+                [
+                    "besök",
+                    "media bjuds in",
+                    "pressträff",
+                    "pressvisning",
+                    "fototillfälle",
+                    "öppet för media",
+                ],
+            )
+        )
         if outside_was_physical and item.desk in {"ZUMA", "BOTH"}:
             if is_prisma_topic or red_people or red_topics or item.category in {"government", "prime_minister", "nato", "defence", "royal"}:
                 item.desk = "PRISMA"
@@ -765,6 +781,13 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             item.physical_presence = False
             if item.action_recommendation in {"ÅK_DIT", "SÖK_ACKREDITERING", "RING_MAILA_NU"}:
                 item.action_recommendation = "FÖLJ_UPP"
+        if outside_event_or_visit and item.action_recommendation == "PUBLICERA_IDAG":
+            item.action_recommendation = "FÖLJ_UPP"
+            if item.priority == "ORANGE":
+                item.priority = "YELLOW"
+            item.raw_json["why_it_matters"] = (
+                "Prisma-relevant ämne, men detta är ett lokalt besök utanför Stockholms län. Följ upp sakfrågan innan publicering."
+            )
         item.raw_json["location_note"] = "Utanför Stockholms län: bevaka för Prisma om målgruppen berörs, men ge inte ZUMA-uppdrag på plats."
     else:
         item.raw_json["location_fit"] = "OKÄNT"

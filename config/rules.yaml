@@ -319,6 +319,8 @@ outside_stockholm_terms:
   - Uppsala
   - Kristianstad
   - Skåne
+  - Boden
+  - Norrbotten
   - Östersund
   - Kiruna
   - Luleå
@@ -326,6 +328,9 @@ outside_stockholm_terms:
 prisma_terms:
   - migration
   - Migrationsverket
+  - återvändande
+  - återvändandecenter
+  - mottagningscenter
   - arbetskraftsinvandring
   - arbetstillstånd
   - lönegolv
