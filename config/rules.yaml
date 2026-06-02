@@ -87,6 +87,12 @@ zuma_terms:
   - flyg
   - extremväder
   - sport
+  - Stockholm Marathon
+  - maraton
+  - marathon
+  - medaljutdelning
+  - målgång
+  - internationellt lopp
   - Skeppsbron
   - Rosenbad
   - Arlanda
@@ -103,6 +109,12 @@ zuma_picture_event_terms:
   - statsbesök
   - demonstration
   - manifestation
+  - maraton
+  - marathon
+  - Stockholm Marathon
+  - medaljutdelning
+  - målgång
+  - folkfest
   - partiledardebatt
   - frågestund
   - särskild debatt
@@ -169,6 +181,9 @@ zuma_picture_place_terms:
   - Kungliga slottet
   - Arlanda
   - Stockholms central
+  - Stockholm Stadion
+  - Stockholms stadion
+  - Stadion
   - Sergels torg
   - Kungsträdgården
   - Helsingborg
@@ -187,6 +202,9 @@ stockholm_priority_terms:
   - Skeppsbron
   - Arlanda
   - Stockholms central
+  - Stockholm Stadion
+  - Stockholms stadion
+  - Stadion
   - Sergels torg
   - Kungsträdgården
   - Kungliga slottet

@@ -179,6 +179,29 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("politisk medieträff", item.raw_json.get("why_it_matters", ""))
 
+    def test_stockholm_marathon_medal_ceremony_is_zuma_picture_event(self):
+        item = NewsItem(
+            source_name="TT bildsignal",
+            source_url="https://example.test/tt",
+            title="Stockholm Marathon 2026",
+            summary=(
+                "Stockholm, Sverige. Medaljutdelning efter målgång i Stockholm Stadion "
+                "under Stockholm marathon på lördagen."
+            ),
+            category="events",
+            url="https://example.test/stockholm-marathon-2026",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "ZUMA")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("internationellt bildvärde", item.raw_json.get("why_it_matters", ""))
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",

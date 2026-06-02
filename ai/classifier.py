@@ -176,6 +176,15 @@ def image_suggestions_for_item(
             ]
         )
 
+    if any(term.lower() in lowered for term in ["stockholm marathon", "maraton", "marathon", "medaljutdelning", "målgång", "folkfest"]):
+        suggestions.extend(
+            [
+                "Målgång, medaljutdelning och löpare vid Stockholm Stadion med tydlig Stockholm-känsla.",
+                "Breda bilder på publik, löparmassor och stadsmiljöer längs banan som visar folkfesten.",
+                "Detaljer: medaljer, nummerlappar, svettiga målgestalter och internationella deltagare.",
+            ]
+        )
+
     if item.category in {"parliament_reports", "parliament_decisions", "parliament_propositions"} and (
         prisma_terms or zuma_terms
     ):
@@ -353,6 +362,13 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             ],
         )
     )
+    stockholm_sports_picture_event = bool(
+        (stockholm_terms or "stockholm" in text.lower())
+        and _contains_any(
+            text,
+            ["Stockholm Marathon", "maraton", "marathon", "medaljutdelning", "målgång", "lopp", "folkfest"],
+        )
+    )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family"}:
@@ -369,7 +385,15 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if (political_press_event or political_media_availability) and (
+    if stockholm_sports_picture_event:
+        item.priority = "ORANGE"
+        item.desk = "ZUMA"
+        item.physical_presence = True
+        item.action_recommendation = "FÖLJ_UPP"
+        item.raw_json["why_it_matters"] = (
+            "Stort Stockholm-event med tydligt internationellt bildvärde: sport, folkfest och stadsmiljö."
+        )
+    elif (political_press_event or political_media_availability) and (
         stockholm_terms or "stockholm" in text.lower() or "stockholm" in item.source_name.lower()
     ):
         item.priority = "RED"
