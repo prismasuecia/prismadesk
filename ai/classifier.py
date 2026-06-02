@@ -194,6 +194,15 @@ def image_suggestions_for_item(
             ]
         )
 
+    if any(term.lower() in lowered for term in ["veterandagen", "veterandag", "sjöhistoriska", "kransnedläggning", "militär ceremoni"]):
+        suggestions.extend(
+            [
+                "Statsminister, försvarsminister, talman och veteraner vid ceremonin, gärna med fanor eller honnör.",
+                "Sjöhistoriska museet och ceremonimiljön som tydlig Stockholm- och försvarsbild.",
+                "Detaljer på uniformer, medaljer, kransar, flaggor och publik under veterandagen.",
+            ]
+        )
+
     if item.category in {"parliament_reports", "parliament_decisions", "parliament_propositions"} and (
         prisma_terms or zuma_terms
     ):
@@ -392,6 +401,11 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             ],
         )
     )
+    stockholm_ceremony_picture_event = bool(
+        (stockholm_terms or "stockholm" in text.lower())
+        and _contains_any(text, ["Veterandagen", "veterandag", "Sjöhistoriska", "militär ceremoni", "kransnedläggning"])
+        and (red_people or red_topics or zuma_picture_subject_terms)
+    )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family"}:
@@ -408,7 +422,15 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if stockholm_sports_picture_event:
+    if stockholm_ceremony_picture_event:
+        item.priority = "RED"
+        item.desk = "ZUMA" if not is_prisma_topic else "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "RING_MAILA_NU"
+        item.raw_json["why_it_matters"] = (
+            "Veteran- eller försvarsceremoni i Stockholm med statsledning: starkt ZUMA-bildläge."
+        )
+    elif stockholm_sports_picture_event:
         item.priority = "ORANGE"
         item.desk = "ZUMA"
         item.physical_presence = True

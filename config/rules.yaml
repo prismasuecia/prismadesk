@@ -1,9 +1,13 @@
 red_alert_people:
   - Ulf Kristersson
   - Pål Jonson
+  - Pål Jonsson
+  - Carl-Oskar Bohlin
   - Maria Malmer Stenergard
   - statsministern
   - försvarsministern
+  - talmannen
+  - Andreas Norlén
   - utrikesministern
   - socialministern
   - Socialminister
@@ -74,6 +78,9 @@ hard_red_terms:
   - Revinge
   - Helsingborg
   - statsbesök
+  - Veterandagen
+  - veterandag
+  - Sjöhistoriska museet
 zuma_terms:
   - NATO
   - statsbesök
@@ -87,6 +94,11 @@ zuma_terms:
   - flyg
   - extremväder
   - sport
+  - Veterandagen
+  - veterandag
+  - militär ceremoni
+  - veteraner
+  - talmannen
   - Stockholm Marathon
   - maraton
   - marathon
@@ -135,6 +147,10 @@ zuma_picture_event_terms:
   - intervju
   - medieträff
   - ceremoni
+  - Veterandagen
+  - veterandag
+  - militär ceremoni
+  - kransnedläggning
   - kortege
   - statsbegravning
   - toppmöte
@@ -151,9 +167,13 @@ zuma_picture_subject_terms:
   - Mark Rutte
   - Ulf Kristersson
   - Pål Jonson
+  - Pål Jonsson
+  - Carl-Oskar Bohlin
   - Maria Malmer Stenergard
   - statsministern
   - försvarsministern
+  - talmannen
+  - Andreas Norlén
   - utrikesministern
   - kungaparet
   - kronprinsessan
@@ -194,6 +214,8 @@ zuma_picture_place_terms:
   - Riksdagens presscenter
   - Skeppsbron
   - Kungliga slottet
+  - Sjöhistoriska museet
+  - Sjöhistoriska
   - Arlanda
   - Stockholms central
   - Stockholm Stadion
@@ -226,6 +248,8 @@ stockholm_priority_terms:
   - Sergels torg
   - Kungsträdgården
   - Kungliga slottet
+  - Sjöhistoriska museet
+  - Sjöhistoriska
   - Södermalm
   - Norrmalm
   - Östermalm

@@ -226,6 +226,31 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("VM", " ".join(item.raw_json.get("image_suggestions", [])))
 
+    def test_veterans_day_with_government_leaders_is_red_zuma_picture_event(self):
+        item = NewsItem(
+            source_name="TT bildsignal",
+            source_url="https://example.test/tt",
+            title="Veterandagen Stockholm 2026",
+            summary=(
+                "Stockholm, Sverige. Carl-Oskar Bohlin, Pål Jonsson, statsminister "
+                "Ulf Kristersson och talmannen Andreas Norlén under veterandagen "
+                "vid Sjöhistoriska museet i Stockholm."
+            ),
+            category="events",
+            url="https://example.test/veterandagen-stockholm-2026",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("försvarsceremoni", item.raw_json.get("why_it_matters", ""))
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",
