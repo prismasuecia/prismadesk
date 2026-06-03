@@ -30,6 +30,13 @@ class AuthTest(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(dashboard.status_code, 200)
 
+    def test_update_get_redirects_to_dashboard(self):
+        with patch.dict("os.environ", {"PRISMA_DESK_PASSWORD": ""}, clear=False):
+            response = app.test_client().get("/update")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+
 
 if __name__ == "__main__":
     unittest.main()

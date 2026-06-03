@@ -175,11 +175,13 @@ def dashboard():
     )
 
 
-@app.route("/update", methods=["POST"])
+@app.route("/update", methods=["GET", "POST"])
 def update():
     auth_redirect = require_auth()
     if auth_redirect:
         return auth_redirect
+    if request.method == "GET":
+        return redirect(url_for("dashboard"))
     result = run_update()
     message = f"Uppdatering klar: {result['saved']} nya sparade, {result['found']} fynd analyserade, {result['red_alerts']} rödalarm."
     if result["errors"]:
