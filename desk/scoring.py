@@ -112,6 +112,10 @@ def detect_swedish_event_datetime(text: str, now: datetime | None = None) -> dat
     return None
 
 
+def has_explicit_swedish_event_time(text: str) -> bool:
+    return bool(re.search(r"\b(?:kl\.?|klockan)\s*\d{1,2}[:.]\d{2}\b", text, flags=re.IGNORECASE))
+
+
 def effective_item_datetime(item: NewsItem, now: datetime | None = None) -> datetime | None:
     now = now or datetime.now().astimezone()
     event_datetime = detect_swedish_event_datetime(item.text_for_analysis, now)
@@ -164,6 +168,14 @@ def temporal_status(item: NewsItem, now: datetime | None = None) -> str:
         "RING_MAILA_NU",
         }
     )
+    event_datetime = detect_swedish_event_datetime(item.text_for_analysis, now)
+    if (
+        event_like
+        and event_datetime
+        and not has_explicit_swedish_event_time(item.text_for_analysis)
+        and event_datetime.astimezone(now.tzinfo).date() < now.date()
+    ):
+        return "PAST_EVENT"
     if event_like and age_hours > 36:
         return "PAST_EVENT"
     if age_hours > 168:

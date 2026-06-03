@@ -328,6 +328,9 @@ outside_stockholm_terms:
 prisma_terms:
   - migration
   - Migrationsverket
+  - anhöriginvandring
+  - familjeåterförening
+  - uppehållstillstånd
   - återvändande
   - återvändandecenter
   - mottagningscenter

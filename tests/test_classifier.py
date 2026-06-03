@@ -79,6 +79,28 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("Akut Prisma-läge", item.raw_json.get("why_it_matters", ""))
 
+    def test_yesterday_date_only_press_meeting_is_past_event(self):
+        yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+        item = NewsItem(
+            source_name="Regeringen pressmeddelanden web",
+            source_url="https://www.regeringen.se/pressmeddelanden/",
+            title="Pressträff för att presentera lagförslag för anhöriginvandring",
+            summary=(
+                f"Publicerad {swedish_date(yesterday)} {yesterday.year}. "
+                "Migrationsministern bjuder in till pressträff om anhöriginvandring."
+            ),
+            category="government",
+            url="https://www.regeringen.se/pressmeddelanden/2026/06/presstraff-anhoriginvandring/",
+            published_at=swedish_date(yesterday),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("temporal_status"), "PAST_EVENT")
+        self.assertFalse(item.physical_presence)
+        self.assertNotEqual(item.priority, "RED")
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+
     def test_party_manifest_press_meeting_in_stockholm_is_zuma_picture_alert(self):
         item = NewsItem(
             source_name="Liberalerna pressrum",
@@ -103,6 +125,28 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json["matched_terms"]["zuma_picture_value"])
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("ZUMA-bildläge", item.raw_json.get("why_it_matters", ""))
+
+    def test_scraped_party_manifest_without_event_time_is_follow_up(self):
+        item = NewsItem(
+            source_name="Liberalerna pressrum",
+            source_url="https://www.liberalerna.se/pressrum",
+            title="Liberalerna presenterar valmanifest inför valet 2026 - För din frihet",
+            summary=(
+                "Liberalerna presenterar sitt valmanifest. Partiledare Simona Mohamsson "
+                "medverkade vid en pressträff."
+            ),
+            category="politics",
+            url="https://www.liberalerna.se/pressrum/liberalerna-presenterar-valmanifest",
+            published_at=datetime.now(timezone.utc).isoformat(),
+            raw_json={"source_type": "web"},
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertIn(item.priority, {"YELLOW", "ORANGE"})
+        self.assertFalse(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertIn("ingen tydlig kommande tid", item.raw_json.get("why_it_matters", ""))
 
     def test_digital_child_safety_press_meeting_is_prisma_and_picture_alert(self):
         item = NewsItem(

@@ -5,7 +5,12 @@ import re
 from typing import Iterable
 
 from desk.models import NewsItem
-from desk.scoring import apply_temporal_guardrails, calculate_score, detect_deadline
+from desk.scoring import (
+    apply_temporal_guardrails,
+    calculate_score,
+    detect_deadline,
+    detect_swedish_event_datetime,
+)
 
 GENERIC_NON_STORY_TITLES = {
     "calendario cultural",
@@ -35,6 +40,9 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "medborgarskap",
     "migration",
     "Migrationsverket",
+    "anhöriginvandring",
+    "familjeåterförening",
+    "uppehållstillstånd",
     "återvändande",
     "återvändandecenter",
     "mottagningscenter",
@@ -801,6 +809,22 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.physical_presence = False
         item.raw_json["why_it_matters"] = (
             "Aktuell stark signal, men mediekällan saknar tydlig plats i Stockholms län. Följ upp plats innan ZUMA på plats."
+        )
+
+    source_type = item.raw_json.get("source_type")
+    is_scraped_political_web_item = bool(
+        item.category == "politics"
+        and source_type in {"web", "web_fallback"}
+        and item.action_recommendation in {"RING_MAILA_NU", "ÅK_DIT", "SÖK_ACKREDITERING"}
+        and not detect_swedish_event_datetime(text)
+    )
+    if is_scraped_political_web_item:
+        item.physical_presence = False
+        item.action_recommendation = "FÖLJ_UPP"
+        if item.priority == "RED":
+            item.priority = "ORANGE"
+        item.raw_json["why_it_matters"] = (
+            "Partipolitisk nyhet med bildvärde, men ingen tydlig kommande tid eller presstid hittades. Följ upp innan ZUMA på plats."
         )
 
     if image_suggestions:
