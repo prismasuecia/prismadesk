@@ -247,6 +247,29 @@ def image_suggestions_for_item(
             ]
         )
 
+    if _contains_any(
+        text,
+        [
+            "guldbröllop",
+            "bröllopsdag",
+            "bröllopsjubileum",
+            "kungligt jubileum",
+            "Te Deum",
+            "Vasaorden",
+            "kungaslupen",
+            "hästkortege",
+            "kortege",
+        ],
+    ):
+        suggestions.extend(
+            [
+                "Kungaparet under kortege, rodd eller ceremoni, med tydlig Stockholmsmiljö och pressuppbåd.",
+                "Publik, flaggor, avspärrningar och kortege längs Skeppsbron, Strandvägen, Stureplan eller Kungsträdgården.",
+                "Vasaorden, Stockholms ström eller kungaslupen som stark visuell huvudbild om firandet sker på vattnet.",
+                "Slottskyrkan, Kungliga slottet eller Kungliga Operan exteriört med gäster, uniformer och galakläder.",
+            ]
+        )
+
     if item.category in {"parliament_reports", "parliament_decisions", "parliament_propositions"} and (
         prisma_terms or zuma_terms
     ):
@@ -275,6 +298,28 @@ def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
     if "riksdagen" in lowered or "riksdagens presscenter" in lowered:
         guidance.append(
             "Vid Riksdagen: kontrollera pressackreditering/presskort och kontakta Riksdagens presscenter om tillträde, fotoregler och samlingsplats."
+        )
+
+    if any(
+        term in lowered
+        for term in [
+            "kungaparet",
+            "kung carl xvi gustaf",
+            "drottning silvia",
+            "guldbröllop",
+            "bröllopsdag",
+            "te deum",
+            "vasaorden",
+            "slottskyrkan",
+            "kungliga operan",
+        ]
+    ):
+        guidance.extend(
+            [
+                "Kontakta Kungahusets informationsavdelning/mediecenter om pressackreditering, fotopositioner, poolfoto, tider och säkerhetskontroll.",
+                "Vid kortege eller offentligt firande: kontrollera även Stockholms stad, Polisen och aktuell platsarrangör för avspärrningar och tillåtna fotopositioner.",
+                "Fråga uttryckligen om ackrediteringsdeadline, presslegitimation, samlingsplats, poolregler och om rörlig fotografering är tillåten.",
+            ]
         )
 
     if item.category == "politics" or any(term in lowered for term in ["partiet", "partiledare", "valmanifest", "valkampanj"]):
@@ -505,6 +550,31 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and _contains_any(text, ["Veterandagen", "veterandag", "Sjöhistoriska", "militär ceremoni", "kransnedläggning"])
         and (red_people or red_topics or zuma_picture_subject_terms)
     )
+    royal_jubilee_picture_event = bool(
+        (stockholm_terms or "stockholm" in text.lower())
+        and (
+            item.category == "royal"
+            or red_people
+            or zuma_picture_subject_terms
+            or _contains_any(text, ["kungaparet", "Kung Carl XVI Gustaf", "Drottning Silvia", "kungafamiljen"])
+        )
+        and _contains_any(
+            text,
+            [
+                "guldbröllop",
+                "bröllopsdag",
+                "bröllopsjubileum",
+                "kungligt jubileum",
+                "Te Deum",
+                "Vasaorden",
+                "kungaslupen",
+                "hästkortege",
+                "kortege",
+                "Slottskyrkan",
+                "Kungliga Operan",
+            ],
+        )
+    )
     civil_alert_picture_event = bool(
         (stockholm_terms or "stockholm" in text.lower())
         and has_press_event
@@ -529,7 +599,17 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if party_leader_debate_picture_event:
+    if royal_jubilee_picture_event:
+        item.priority = "RED"
+        item.desk = "ZUMA" if not is_prisma_topic else "BOTH"
+        item.physical_presence = True
+        item.accreditation_needed = True if item.accreditation_needed is None else item.accreditation_needed
+        item.action_recommendation = "SÖK_ACKREDITERING"
+        item.raw_json["why_it_matters"] = (
+            "Kungligt jubileum eller firande i Stockholm med kortege, ceremoni eller folkfest: mycket starkt ZUMA-bildläge. "
+            "Kontrollera pressackreditering och fotoposition direkt."
+        )
+    elif party_leader_debate_picture_event:
         item.priority = "RED"
         item.desk = "ZUMA" if not specific_prisma_terms else "BOTH"
         item.physical_presence = True

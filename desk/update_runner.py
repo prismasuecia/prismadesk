@@ -18,6 +18,13 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+SOURCE_PRIORITY_ORDER = {
+    "red": 0,
+    "orange": 1,
+    "yellow": 2,
+    "blue": 3,
+    "green": 4,
+}
 
 
 def load_yaml(path: Path) -> dict:
@@ -30,7 +37,14 @@ def load_sources() -> list[dict]:
     default_limit = "16" if os.getenv("PRISMA_DESK_PASSWORD") else "0"
     limit = int(os.getenv("PRISMA_SOURCE_LIMIT", default_limit) or "0")
     if limit > 0:
-        return sources[:limit]
+        indexed_sources = list(enumerate(sources))
+        indexed_sources.sort(
+            key=lambda pair: (
+                SOURCE_PRIORITY_ORDER.get(str(pair[1].get("priority", "")).lower(), 9),
+                pair[0],
+            )
+        )
+        return [source for _, source in indexed_sources[:limit]]
     return sources
 
 

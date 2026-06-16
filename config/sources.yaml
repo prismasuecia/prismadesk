@@ -69,6 +69,21 @@ sources:
     type: web
     category: royal
     priority: red
+  - name: Kungahuset mediecenter
+    url: https://www.kungahuset.se/mediecenter
+    type: web
+    category: royal
+    priority: red
+  - name: Kungahuset officiella program
+    url: https://www.kungahuset.se/mediecenter/officiella-program
+    type: web
+    category: royal
+    priority: red
+  - name: Kungahuset nyheter
+    url: https://www.kungahuset.se/nyheter
+    type: web
+    category: royal
+    priority: red
   - name: Riksdagen beslutade betänkanden
     url: https://data.riksdagen.se/dokumentlista/?avd=dokument&doktyp=bet&beslutad=1&sort=beslutsdag&sortorder=desc&utformat=rss
     type: rss

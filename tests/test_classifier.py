@@ -52,6 +52,35 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.physical_presence)
         self.assertIn(item.action_recommendation, {"ÅK_DIT", "SÖK_ACKREDITERING", "RING_MAILA_NU"})
 
+    def test_royal_golden_wedding_in_stockholm_is_accreditation_alert(self):
+        future = datetime.now(timezone.utc) + timedelta(days=2)
+        item = NewsItem(
+            source_name="Kungahuset officiella program",
+            source_url="https://www.kungahuset.se/mediecenter/officiella-program",
+            title="Kungaparets guldbröllop firas i Stockholm",
+            summary=(
+                f"Lördag {swedish_date(future)} firar kungaparet sitt guldbröllop med "
+                "Te Deum i Slottskyrkan, rodd med Vasaorden från Skeppsbron över "
+                "Stockholms ström, hästkortege genom centrala Stockholm till "
+                "Kungsträdgården och konsert på Kungliga Operan. Pressackreditering krävs."
+            ),
+            category="royal",
+            url="https://www.kungahuset.se/nyheter/kungaparets-guldbrollop",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertTrue(item.accreditation_needed)
+        self.assertEqual(item.action_recommendation, "SÖK_ACKREDITERING")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("Kungahusets", " ".join(item.raw_json.get("access_guidance", [])))
+        self.assertIn("ZUMA-bildläge", item.raw_json.get("why_it_matters", ""))
+
     def test_press_meeting_about_labour_migration_is_acute_prisma(self):
         tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
         event_date = swedish_date(tomorrow)

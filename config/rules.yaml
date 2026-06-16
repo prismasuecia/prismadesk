@@ -15,6 +15,11 @@ red_alert_people:
   - Mark Rutte
   - NATO Secretary General
   - kungaparet
+  - Kung Carl XVI Gustaf
+  - Drottning Silvia
+  - kungen
+  - drottningen
+  - kungafamiljen
   - kronprinsessan
   - utländsk ledare
   - president
@@ -39,6 +44,15 @@ red_alert_topics:
   - fregatt
   - ubåt
   - statsbesök
+  - kungligt jubileum
+  - guldbröllop
+  - bröllopsdag
+  - bröllopsjubileum
+  - Te Deum
+  - Vasaorden
+  - kungaslupen
+  - hästkortege
+  - kortege
   - terror
   - kris
   - explosion
@@ -68,6 +82,13 @@ red_alert_places:
   - Stockholms central
   - Sergels torg
   - Kungsträdgården
+  - Kungliga Operan
+  - Slottskyrkan
+  - Stockholms ström
+  - Strandvägen
+  - Stureplan
+  - Hamngatan
+  - Djurgården
   - Helsingborg
   - Revinge
   - Visby
@@ -87,10 +108,30 @@ hard_red_terms:
   - Veterandagen
   - veterandag
   - Sjöhistoriska museet
+  - kungaparet
+  - Kung Carl XVI Gustaf
+  - Drottning Silvia
+  - guldbröllop
+  - bröllopsdag
+  - bröllopsjubileum
+  - Te Deum
+  - Vasaorden
+  - hästkortege
+  - kortege
+  - Kungliga Operan
+  - Slottskyrkan
 zuma_terms:
   - NATO
   - statsbesök
   - kungliga ceremonier
+  - kungligt jubileum
+  - kunglig kortege
+  - guldbröllop
+  - bröllopsdag
+  - Te Deum
+  - Vasaorden
+  - kungaslupen
+  - hästkortege
   - internationella toppmöten
   - demonstration
   - försvar
@@ -129,6 +170,9 @@ zuma_terms:
   - Rosenbad
   - Arlanda
   - Kungsträdgården
+  - Kungliga Operan
+  - Slottskyrkan
+  - Stockholms ström
 zuma_picture_event_terms:
   - pressträff
   - presskonferens
@@ -150,6 +194,16 @@ zuma_picture_event_terms:
   - medaljutdelning
   - målgång
   - folkfest
+  - guldbröllop
+  - bröllopsdag
+  - bröllopsjubileum
+  - kungligt jubileum
+  - Te Deum
+  - Vasaorden
+  - kungaslupen
+  - rodd
+  - hästkortege
+  - konsert
   - fotbolls-VM
   - fotbolls VM
   - landslaget
@@ -197,6 +251,11 @@ zuma_picture_subject_terms:
   - Socialminister
   - Jakob Forssmed
   - kungaparet
+  - Kung Carl XVI Gustaf
+  - Drottning Silvia
+  - kungen
+  - drottningen
+  - kungafamiljen
   - kronprinsessan
   - president
   - premiärminister
@@ -235,6 +294,13 @@ zuma_picture_place_terms:
   - Riksdagens presscenter
   - Skeppsbron
   - Kungliga slottet
+  - Slottskyrkan
+  - Kungliga Operan
+  - Stockholms ström
+  - Strandvägen
+  - Stureplan
+  - Hamngatan
+  - Djurgården
   - Sjöhistoriska museet
   - Sjöhistoriska
   - Kulturhuset Stadsteatern
@@ -271,6 +337,13 @@ stockholm_priority_terms:
   - Scandic Park
   - Sergels torg
   - Kungsträdgården
+  - Slottskyrkan
+  - Kungliga Operan
+  - Stockholms ström
+  - Strandvägen
+  - Stureplan
+  - Hamngatan
+  - Djurgården
   - Kungliga slottet
   - Sjöhistoriska museet
   - Sjöhistoriska
