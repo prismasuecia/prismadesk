@@ -9,6 +9,11 @@ sources:
     type: web
     category: government
     priority: red
+  - name: Regeringen kalendarium statsråd
+    url: https://www.regeringen.se/kalendarium/
+    type: web
+    category: government_calendar
+    priority: red
   - name: Regeringen statsministern
     url: https://www.regeringen.se/Filter/RssFeed?filterType=Taxonomy&filterByType=FilterablePageBase&preFilteredCategories=1284%2C1285%2C1286%2C1287%2C1288%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297%2C2425&rootPageReference=0&filteredContentCategories=1334&filteredPoliticalLevelCategories=&filteredPoliticalAreaCategories=&filteredPublisherCategories=2605
     type: rss
@@ -74,6 +79,11 @@ sources:
     type: web
     category: royal
     priority: red
+  - name: Kungahuset pressmeddelanden arkiv
+    url: https://www.kungahuset.se/mediecenter/pressmeddelanden.html
+    type: web
+    category: royal_accreditation
+    priority: red
   - name: Kungahuset officiella program
     url: https://www.kungahuset.se/mediecenter/officiella-program
     type: web
@@ -114,16 +124,61 @@ sources:
     type: ical
     category: parliament_calendar
     priority: orange
+  - name: Riksdagen webb-tv sammanträden
+    url: https://www.riksdagen.se/sv/webb-tv/
+    type: web
+    category: parliament_broadcast
+    priority: orange
   - name: Försvarsmakten nyheter
     url: https://www.forsvarsmakten.se/aktuellt/nyheter/
     type: web
     category: defence
+    priority: red
+  - name: Försvarsmakten Mynewsdesk nyheter
+    url: https://www.mynewsdesk.com/se/rss/current_news/441
+    type: rss
+    category: defence
+    priority: red
+  - name: Försvarsmakten Mynewsdesk event
+    url: https://www.mynewsdesk.com/se/rss/source/523/event
+    type: rss
+    category: defence_events
     priority: red
   - name: Försvarsmakten press och media
     url: https://www.forsvarsmakten.se/kontakt/press-och-media/
     type: web
     category: defence
     priority: red
+  - name: MCF civilt försvar Mynewsdesk
+    url: https://www.mynewsdesk.com/se/rss/current_news/14765
+    type: rss
+    category: civil_defence
+    priority: red
+  - name: Polisen press Stockholm
+    url: https://polisen.se/aktuellt/rss/stockholms-lan/press-rss---stockholms-lan/
+    type: rss
+    category: police_stockholm
+    priority: orange
+  - name: Polisen nyheter Stockholm
+    url: https://polisen.se/aktuellt/rss/stockholms-lan/nyheter-rss---stockholms-lan/
+    type: rss
+    category: police_stockholm
+    priority: orange
+  - name: Valmyndigheten pressrum
+    url: https://www.val.se/servicelankar/servicelankar/pressrum
+    type: web
+    category: election
+    priority: orange
+  - name: Valmyndigheten nyheter
+    url: https://www.val.se/servicelankar/servicelankar/pressrum/nyheter
+    type: web
+    category: election
+    priority: orange
+  - name: Region Stockholm press
+    url: https://www.regionstockholm.se/press/
+    type: web
+    category: region_stockholm
+    priority: orange
   - name: Stockholms stad aktuellt
     url: https://start.stockholm/aktuellt/
     type: web
@@ -159,6 +214,21 @@ sources:
     type: web
     category: events
     priority: blue
+  - name: Stockholm Live press
+    url: https://www.stockholmlive.com/press
+    type: web
+    category: arena_stockholm
+    priority: blue
+  - name: Friends Arena
+    url: https://www.friendsarena.se
+    type: web
+    category: arena_stockholm
+    priority: blue
+  - name: Svenska Fotbollförbundet press
+    url: https://svenskfotboll.se/svff/press/
+    type: web
+    category: sport_national_team
+    priority: blue
   - name: SL aktuellt
     url: https://sl.se/aktuellt
     type: web
@@ -188,6 +258,16 @@ sources:
     url: https://www.casalatina.se
     type: web
     category: latino_community
+    priority: blue
+  - name: Embajada de México en Suecia
+    url: https://embamex.sre.gob.mx/suecia/index.php/es/
+    type: web
+    category: latinamerican_embassy
+    priority: blue
+  - name: Embajada de Colombia en Suecia noticias
+    url: https://suecia.embajada.gov.co/sala-de-prensa/noticias
+    type: web
+    category: latinamerican_embassy
     priority: blue
   - name: SVT Nyheter
     url: https://www.svt.se/rss.xml

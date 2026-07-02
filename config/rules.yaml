@@ -28,6 +28,9 @@ red_alert_topics:
   - NATO
   - försvar
   - Försvarsmakten
+  - Myndigheten för civilt försvar
+  - MCF
+  - MSB
   - Flygvapnet
   - flygvapnet 100 år
   - flygvapenjubileum
@@ -36,6 +39,9 @@ red_alert_topics:
   - civilbefolkningen
   - civilt försvar
   - civil beredskap
+  - Myndigheten för civilt försvar
+  - MCF
+  - MSB
   - beredskap
   - varningssystem
   - SE Alert
@@ -120,6 +126,9 @@ hard_red_terms:
   - NATO Secretary General
   - NATO
   - Försvarsmakten
+  - Myndigheten för civilt försvar
+  - MCF
+  - MSB
   - Flygvapnet
   - flygvapnet 100 år
   - flygvapenjubileum
@@ -193,6 +202,9 @@ zuma_terms:
   - civilbefolkningen
   - civilt försvar
   - civil beredskap
+  - Myndigheten för civilt försvar
+  - MCF
+  - MSB
   - beredskap
   - varningssystem
   - SE Alert
@@ -234,6 +246,10 @@ zuma_picture_event_terms:
   - varningssystem
   - SE Alert
   - mobilvarning
+  - skyddsrum
+  - totalförsvar
+  - värdlandsstöd
+  - krisinformation
   - statsbesök
   - flygvapnet 100 år
   - flygvapenjubileum
@@ -358,6 +374,12 @@ zuma_picture_subject_terms:
   - ledarstab
   - förbundskapten
   - Sebastian Larsson
+  - Polismyndigheten
+  - polisen
+  - polis
+  - Myndigheten för civilt försvar
+  - MCF
+  - MSB
 zuma_picture_place_terms:
   - Rosenbad
   - Riksdagens presscenter
@@ -463,6 +485,11 @@ stockholm_priority_terms:
   - Värmdö
   - Vaxholm
   - Ekerö
+  - Avicii Arena
+  - Globen
+  - Tele2 Arena
+  - Strawberry Arena
+  - Friends Arena
 outside_stockholm_terms:
   - Helsingborg
   - Revinge
@@ -508,6 +535,8 @@ prisma_terms:
   - Polismyndigheten
   - polisen
   - polis
+  - polisens pressmeddelande
+  - polisens nyheter
   - Justitieutskottet
   - integritet
   - övervakning
@@ -520,6 +549,9 @@ prisma_terms:
   - civilbefolkningen
   - civilt försvar
   - civil beredskap
+  - Myndigheten för civilt försvar
+  - MCF
+  - MSB
   - krisberedskap
   - beredskap
   - varningssystem
@@ -557,6 +589,14 @@ prisma_terms:
   - valkampanj
   - riksdagsval
   - valet 2026
+  - Valmyndigheten
+  - förtidsröstning
+  - röstkort
+  - brevröstning
+  - utlandsröstning
+  - valdag
+  - vallokal
+  - EU-medborgare
   - partiledare
   - Simona Mohamsson
   - nationella säkerhetsrådgivaren
@@ -587,6 +627,10 @@ prisma_terms:
   - Skatteverket
   - CSN
   - 1177
+  - Region Stockholm
+  - vårdgaranti
+  - akutsjukhus
+  - vårdcentral
   - SL
   - SJ
   - Swedavia
@@ -599,6 +643,11 @@ prisma_terms:
   - elpris
   - matpris
   - latinamerikanska ambassader
+  - Embajada
+  - embajada
+  - consulado
+  - México
+  - Colombia
   - Instituto Cervantes
   - latinoevent
   - konsert
