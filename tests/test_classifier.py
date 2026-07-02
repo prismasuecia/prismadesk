@@ -130,6 +130,69 @@ class ClassifierTest(unittest.TestCase):
         self.assertNotEqual(item.priority, "RED")
         self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
 
+    def test_slash_date_party_press_meeting_is_past_event(self):
+        old_event = datetime.now(timezone.utc) - timedelta(days=8)
+        item = NewsItem(
+            source_name="Sverigedemokraterna press",
+            source_url="https://www.sd.se/press/",
+            title="Jimmie Åkesson håller pressträff",
+            summary="Jimmie Åkesson håller pressträff.",
+            category="politics",
+            url="https://www.sd.se/press/jimmie-akesson-presstraff/",
+            published_at=f"Wed {old_event.day}/{old_event.month} - {old_event.year} 04:00",
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("temporal_status"), "PAST_EVENT")
+        self.assertFalse(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertNotEqual(item.priority, "RED")
+
+    def test_embedded_iso_date_party_item_is_not_publish_today(self):
+        old_event = datetime.now(timezone.utc) - timedelta(days=20)
+        item = NewsItem(
+            source_name="Kristdemokraterna press",
+            source_url="https://press.kristdemokraterna.se/",
+            title=(
+                f"{old_event:%Y-%m-%d} 11:12 Pressmeddelande KD: "
+                "Inför en allmän försvarsutbildning för unga"
+            ),
+            summary="Kristdemokraterna presenterade ett förslag för att stärka beredskap och gemenskap.",
+            category="politics",
+            url="https://press.kristdemokraterna.se/forsvarsutbildning-unga",
+            published_at=datetime.now(timezone.utc).isoformat(),
+            raw_json={"source_type": "web"},
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("temporal_status"), "PAST_EVENT")
+        self.assertNotEqual(item.action_recommendation, "PUBLICERA_IDAG")
+        self.assertFalse(item.physical_presence)
+
+    def test_future_topic_date_does_not_keep_old_press_briefing_upcoming(self):
+        old_publish = datetime.now(timezone.utc) - timedelta(days=3)
+        future_topic = datetime.now(timezone.utc) + timedelta(days=10)
+        item = NewsItem(
+            source_name="Regeringen statsministern",
+            source_url="https://www.regeringen.se/",
+            title="Pressbriefing inför Natos toppmöte i Ankara",
+            summary=(
+                f"Statsministern håller pressbriefing inför Natos toppmöte den "
+                f"{swedish_date(future_topic)}. Ulf Kristersson och Maria Malmer Stenergard medverkar."
+            ),
+            category="prime_minister",
+            url="https://www.regeringen.se/pressbriefing-nato-ankara",
+            published_at=old_publish.strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.raw_json.get("temporal_status"), "PAST_EVENT")
+        self.assertFalse(item.physical_presence)
+        self.assertNotEqual(item.action_recommendation, "ÅK_DIT")
+
     def test_party_manifest_press_meeting_in_stockholm_is_zuma_picture_alert(self):
         item = NewsItem(
             source_name="Liberalerna pressrum",

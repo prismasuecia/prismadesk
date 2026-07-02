@@ -72,6 +72,30 @@ def parse_item_datetime(value: str | None) -> datetime | None:
     if not value:
         return None
     value = value.strip()
+    numeric_patterns = [
+        r"\b(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2})[:.](\d{2}))?\b",
+        r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)?\s*(\d{1,2})/(\d{1,2})\s*-\s*(\d{4})(?:\s+(\d{1,2})[:.](\d{2}))?\b",
+    ]
+    for index, pattern in enumerate(numeric_patterns):
+        match = re.search(pattern, value, flags=re.IGNORECASE)
+        if not match:
+            continue
+        try:
+            if index == 0:
+                year = int(match.group(1))
+                month = int(match.group(2))
+                day = int(match.group(3))
+                hour = int(match.group(4) or 12)
+                minute = int(match.group(5) or 0)
+            else:
+                day = int(match.group(1))
+                month = int(match.group(2))
+                year = int(match.group(3))
+                hour = int(match.group(4) or 12)
+                minute = int(match.group(5) or 0)
+            return datetime(year, month, day, hour, minute, tzinfo=datetime.now().astimezone().tzinfo)
+        except ValueError:
+            continue
     for parser in (
         lambda raw: datetime.fromisoformat(raw.replace("Z", "+00:00")),
         parsedate_to_datetime,
@@ -90,35 +114,76 @@ def detect_swedish_event_datetime(text: str, now: datetime | None = None) -> dat
     now = now or datetime.now().astimezone()
     month_names = "|".join(SWEDISH_MONTHS)
     patterns = [
+        r"\b(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2})[:.](\d{2}))?\b",
+        r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)?\s*(\d{1,2})/(\d{1,2})\s*-\s*(\d{4})(?:\s+(\d{1,2})[:.](\d{2}))?\b",
         rf"(?:måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag)?\s*(?:den\s+)?(\d{{1,2}})\s+({month_names})(?:\s+(\d{{4}}))?(?:\s+kl\.?\s*(\d{{1,2}})[:.](\d{{2}}))?",
         rf"(\d{{1,2}})\s+({month_names})(?:\s+(\d{{4}}))?",
     ]
-    for pattern in patterns:
+    for index, pattern in enumerate(patterns):
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if not match:
             continue
-        day = int(match.group(1))
-        month = SWEDISH_MONTHS[match.group(2).lower()]
-        year = int(match.group(3)) if match.lastindex and match.group(3) else now.year
-        hour = int(match.group(4)) if match.lastindex and match.lastindex >= 4 and match.group(4) else 12
-        minute = int(match.group(5)) if match.lastindex and match.lastindex >= 5 and match.group(5) else 0
+        if index == 0:
+            year = int(match.group(1))
+            month = int(match.group(2))
+            day = int(match.group(3))
+            hour = int(match.group(4) or 12)
+            minute = int(match.group(5) or 0)
+        elif index == 1:
+            day = int(match.group(1))
+            month = int(match.group(2))
+            year = int(match.group(3))
+            hour = int(match.group(4) or 12)
+            minute = int(match.group(5) or 0)
+        else:
+            day = int(match.group(1))
+            month = SWEDISH_MONTHS[match.group(2).lower()]
+            year = int(match.group(3)) if match.lastindex and match.group(3) else now.year
+            hour = int(match.group(4)) if match.lastindex and match.lastindex >= 4 and match.group(4) else 12
+            minute = int(match.group(5)) if match.lastindex and match.lastindex >= 5 and match.group(5) else 0
         try:
             candidate = datetime(year, month, day, hour, minute, tzinfo=now.tzinfo)
         except ValueError:
             continue
-        if not match.group(3) and (now - candidate).total_seconds() > 180 * 24 * 3600:
+        if index >= 2 and not match.group(3) and (now - candidate).total_seconds() > 180 * 24 * 3600:
             candidate = candidate.replace(year=year + 1)
         return candidate
     return None
 
 
 def has_explicit_swedish_event_time(text: str) -> bool:
-    return bool(re.search(r"\b(?:kl\.?|klockan)\s*\d{1,2}[:.]\d{2}\b", text, flags=re.IGNORECASE))
+    return bool(
+        re.search(
+            r"\b(?:kl\.?|klockan)\s*\d{1,2}[:.]\d{2}\b|\b\d{4}-\d{2}-\d{2}[ T]\d{1,2}[:.]\d{2}\b|\b\d{1,2}/\d{1,2}\s*-\s*\d{4}\s+\d{1,2}[:.]\d{2}\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def has_stale_embedded_date(text: str, now: datetime | None = None, max_age_hours: int = 36) -> bool:
+    now = now or datetime.now().astimezone()
+    embedded_datetime = detect_swedish_event_datetime(text, now)
+    if not embedded_datetime:
+        return False
+    age_hours = (now - embedded_datetime.astimezone(now.tzinfo)).total_seconds() / 3600
+    return age_hours > max_age_hours
+
+
+def has_future_topic_date_context(text: str) -> bool:
+    month_names = "|".join(SWEDISH_MONTHS)
+    date_pattern = (
+        rf"(?:den\s+)?\d{{1,2}}\s+(?:{month_names})|"
+        r"\d{4}-\d{2}-\d{2}|"
+        r"\d{1,2}/\d{1,2}\s*-\s*\d{4}"
+    )
+    return bool(re.search(rf"\binför\b[^\n.]{{0,120}}\b(?:toppmöte|möte|ministermöte|besök|konferens)[^\n.]{{0,120}}(?:{date_pattern})", text, flags=re.IGNORECASE))
 
 
 def effective_item_datetime(item: NewsItem, now: datetime | None = None) -> datetime | None:
     now = now or datetime.now().astimezone()
     event_datetime = detect_swedish_event_datetime(item.text_for_analysis, now)
+    published_datetime = parse_item_datetime(item.published_at)
     is_document_source = item.category in {
         "parliament_decisions",
         "parliament_reports",
@@ -133,6 +198,14 @@ def effective_item_datetime(item: NewsItem, now: datetime | None = None) -> date
             flags=re.IGNORECASE,
         )
     )
+    if published_datetime and event_datetime and event_datetime > now and has_event_cue:
+        published_age_hours = (now - published_datetime.astimezone(now.tzinfo)).total_seconds() / 3600
+        if (
+            published_age_hours > 36
+            and not has_explicit_swedish_event_time(item.text_for_analysis)
+            and has_future_topic_date_context(item.text_for_analysis)
+        ):
+            return published_datetime
     if event_datetime and (
         not is_document_source
         and (
@@ -143,7 +216,7 @@ def effective_item_datetime(item: NewsItem, now: datetime | None = None) -> date
         )
     ):
         return event_datetime
-    return parse_item_datetime(item.published_at)
+    return published_datetime
 
 
 def temporal_status(item: NewsItem, now: datetime | None = None) -> str:
@@ -162,6 +235,13 @@ def temporal_status(item: NewsItem, now: datetime | None = None) -> str:
     event_like = not is_document_source and (
         item.physical_presence
         or item.deadline_detected
+        or bool(
+            re.search(
+                r"\b(pressträff|pressbriefing|presskonferens|pressinbjudan|fototillfälle|pressvisning)\b",
+                item.text_for_analysis,
+                flags=re.IGNORECASE,
+            )
+        )
         or item.action_recommendation in {
         "ÅK_DIT",
         "SÖK_ACKREDITERING",
@@ -178,11 +258,17 @@ def temporal_status(item: NewsItem, now: datetime | None = None) -> str:
         return "PAST_EVENT"
     if event_like and age_hours > 36:
         return "PAST_EVENT"
+    if event_like and statusless_stale_text(item.text_for_analysis, now):
+        return "PAST_EVENT"
     if age_hours > 168:
         return "OLD"
     if age_hours < -1:
         return "UPCOMING"
     return "CURRENT"
+
+
+def statusless_stale_text(text: str, now: datetime | None = None) -> bool:
+    return has_stale_embedded_date(text, now=now, max_age_hours=36)
 
 
 def apply_temporal_guardrails(item: NewsItem) -> NewsItem:
