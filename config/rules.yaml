@@ -28,6 +28,9 @@ red_alert_topics:
   - NATO
   - försvar
   - Försvarsmakten
+  - Flygvapnet
+  - flygvapnet 100 år
+  - flygvapenjubileum
   - Östersjön
   - säkerhet
   - civilbefolkningen
@@ -37,6 +40,17 @@ red_alert_topics:
   - varningssystem
   - SE Alert
   - militär
+  - militärflyg
+  - stridsflyg
+  - JAS Gripen
+  - Gripen
+  - luftfartyg
+  - helikopter
+  - transportflygplan
+  - historiska flygplan
+  - överflygning
+  - flyguppvisning
+  - flygformation
   - Ukraina
   - Ryssland
   - marinen
@@ -89,6 +103,11 @@ red_alert_places:
   - Stureplan
   - Hamngatan
   - Djurgården
+  - Karlaplan
+  - Flygarmonumentet
+  - Stockholms slott
+  - Hötorget
+  - Raoul Wallenbergs plats
   - Helsingborg
   - Revinge
   - Visby
@@ -101,6 +120,17 @@ hard_red_terms:
   - NATO Secretary General
   - NATO
   - Försvarsmakten
+  - Flygvapnet
+  - flygvapnet 100 år
+  - flygvapenjubileum
+  - överflygning
+  - flyguppvisning
+  - flygformation
+  - JAS Gripen
+  - Gripen
+  - Karlaplan
+  - Flygarmonumentet
+  - Stockholms slott
   - Skeppsbron
   - Revinge
   - Helsingborg
@@ -136,6 +166,20 @@ zuma_terms:
   - demonstration
   - försvar
   - militär
+  - Flygvapnet
+  - flygvapnet 100 år
+  - flygvapenjubileum
+  - överflygning
+  - flyguppvisning
+  - flygformation
+  - JAS Gripen
+  - Gripen
+  - luftfartyg
+  - stridsflyg
+  - militärflyg
+  - helikopter
+  - transportflygplan
+  - historiska flygplan
   - olycka
   - kollektivtrafik
   - flyg
@@ -173,6 +217,11 @@ zuma_terms:
   - Kungliga Operan
   - Slottskyrkan
   - Stockholms ström
+  - Karlaplan
+  - Flygarmonumentet
+  - Stockholms slott
+  - Hötorget
+  - Raoul Wallenbergs plats
 zuma_picture_event_terms:
   - pressträff
   - presskonferens
@@ -186,6 +235,15 @@ zuma_picture_event_terms:
   - SE Alert
   - mobilvarning
   - statsbesök
+  - flygvapnet 100 år
+  - flygvapenjubileum
+  - överflygning
+  - flyguppvisning
+  - flygformation
+  - flygshow
+  - jubileumsceremoni
+  - vaktparad
+  - högvaktsavlösning
   - demonstration
   - manifestation
   - maraton
@@ -227,6 +285,7 @@ zuma_picture_event_terms:
   - toppmöte
   - ministermöte
   - militärövning
+  - militärparad
   - fartygsbesök
   - invigning
   - valmanifest
@@ -263,6 +322,16 @@ zuma_picture_subject_terms:
   - Ukraina
   - Ryssland
   - Försvarsmakten
+  - Flygvapnet
+  - flygvapnet 100 år
+  - JAS Gripen
+  - Gripen
+  - stridsflyg
+  - militärflyg
+  - luftfartyg
+  - helikopter
+  - transportflygplan
+  - historiska flygplan
   - marinen
   - fregatt
   - ubåt
@@ -301,6 +370,13 @@ zuma_picture_place_terms:
   - Stureplan
   - Hamngatan
   - Djurgården
+  - Karlaplan
+  - Flygarmonumentet
+  - Stockholms slott
+  - Slottet
+  - yttre borggården
+  - Hötorget
+  - Raoul Wallenbergs plats
   - Sjöhistoriska museet
   - Sjöhistoriska
   - Kulturhuset Stadsteatern
@@ -344,6 +420,13 @@ stockholm_priority_terms:
   - Stureplan
   - Hamngatan
   - Djurgården
+  - Karlaplan
+  - Flygarmonumentet
+  - Stockholms slott
+  - Slottet
+  - yttre borggården
+  - Hötorget
+  - Raoul Wallenbergs plats
   - Kungliga slottet
   - Sjöhistoriska museet
   - Sjöhistoriska

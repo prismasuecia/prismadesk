@@ -159,6 +159,31 @@ def image_suggestions_for_item(
             ]
         )
 
+    if _contains_any(
+        text,
+        [
+            "Flygvapnet",
+            "flygvapnet 100 år",
+            "flygvapenjubileum",
+            "överflygning",
+            "flyguppvisning",
+            "flygformation",
+            "flygshow",
+            "JAS Gripen",
+            "Gripen",
+            "luftfartyg",
+        ],
+    ):
+        suggestions.extend(
+            [
+                "Flygformationer över Stockholms slott, centrala Stockholm eller vattenlinjen med tydlig platsmarkör.",
+                "JAS Gripen, historiska flygplan, transportflyg och helikoptrar i formation mot igenkännbar Stockholmssiluett.",
+                "Publik som tittar upp, fotograferar eller samlas vid Slottet, Karlaplan, Sergels torg eller kajerna.",
+                "Flygarmonumentet, vaktparad, högvaktsavlösning eller militärmusik som markbild till jubileet.",
+                "Detaljbilder på flaggor, uniformer, musikkårer, flygplansspår och människor i city under överflygningen.",
+            ]
+        )
+
     if _contains_any(text, ["SL", "kollektivtrafik", "tåg", "väg", "trafik", "Arlanda", "flyg"]):
         suggestions.extend(
             [
@@ -298,6 +323,27 @@ def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
     if "riksdagen" in lowered or "riksdagens presscenter" in lowered:
         guidance.append(
             "Vid Riksdagen: kontrollera pressackreditering/presskort och kontakta Riksdagens presscenter om tillträde, fotoregler och samlingsplats."
+        )
+
+    if any(
+        term in lowered
+        for term in [
+            "flygvapnet",
+            "överflygning",
+            "flyguppvisning",
+            "flygformation",
+            "flygarmonumentet",
+            "högvaktsavlösning",
+            "vaktparad",
+            "jas gripen",
+        ]
+    ):
+        guidance.extend(
+            [
+                "Kontakta Försvarsmaktens pressjour om exakt tid, flygrutt, formationer, medverkan på marken och eventuella pressytor.",
+                "För Stockholm: kontrollera bästa fotopositioner vid Slottet, Karlaplan, Skeppsholmen, Strömbron, Norrbro, kajerna och öppna cityytor.",
+                "Fråga om väderreserv, ändrad flygrutt, säkerhetsavstånd, drönarförbud och om foto vid militär ceremoni kräver särskilda instruktioner.",
+            ]
         )
 
     if any(
@@ -550,6 +596,28 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and _contains_any(text, ["Veterandagen", "veterandag", "Sjöhistoriska", "militär ceremoni", "kransnedläggning"])
         and (red_people or red_topics or zuma_picture_subject_terms)
     )
+    stockholm_military_air_event = bool(
+        (stockholm_terms or "stockholm" in text.lower())
+        and _contains_any(
+            text,
+            [
+                "Flygvapnet",
+                "flygvapnet 100 år",
+                "flygvapenjubileum",
+                "överflygning",
+                "flyguppvisning",
+                "flygformation",
+                "flygshow",
+                "JAS Gripen",
+                "Gripen",
+                "luftfartyg",
+            ],
+        )
+        and (
+            item.category == "defence"
+            or _contains_any(text, ["Försvarsmakten", "militär", "jubileum", "100 år", "vaktparad", "högvaktsavlösning"])
+        )
+    )
     royal_jubilee_picture_event = bool(
         (stockholm_terms or "stockholm" in text.lower())
         and (
@@ -599,7 +667,16 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if royal_jubilee_picture_event:
+    if stockholm_military_air_event:
+        item.priority = "RED"
+        item.desk = "ZUMA" if not is_prisma_topic else "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "RING_MAILA_NU"
+        item.raw_json["why_it_matters"] = (
+            "Militär flyguppvisning eller historisk överflygning över Stockholm: mycket starkt ZUMA-bildläge och tydlig Prisma-förklaring. "
+            "Kontrollera tid, rutt och fotoposition direkt."
+        )
+    elif royal_jubilee_picture_event:
         item.priority = "RED"
         item.desk = "ZUMA" if not is_prisma_topic else "BOTH"
         item.physical_presence = True

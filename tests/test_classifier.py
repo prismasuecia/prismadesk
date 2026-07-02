@@ -374,6 +374,36 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("försvarsceremoni", item.raw_json.get("why_it_matters", ""))
 
+    def test_air_force_centennial_flyover_stockholm_is_red_zuma_picture_event(self):
+        future = datetime.now(timezone.utc) + timedelta(days=1)
+        item = NewsItem(
+            source_name="Försvarsmakten nyheter",
+            source_url="https://www.forsvarsmakten.se/aktuellt/nyheter/",
+            title="Flygvapnet 100 år firas med stor överflygning över Stockholm",
+            summary=(
+                f"Den {swedish_date(future)} firar Flygvapnet 100 år med jubileumsceremoni "
+                "vid Flygarmonumentet på Karlaplan, vaktparad till Stockholms slott, "
+                "högvaktsavlösning och en historiskt stor överflygning med 54 luftfartyg. "
+                "JAS Gripen, transportflygplan, helikoptrar och historiska flygplan passerar "
+                "över centrala Stockholm."
+            ),
+            category="defence",
+            url="https://www.forsvarsmakten.se/aktuellt/nyheter/flygvapnet-100-ar/",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json["matched_terms"]["zuma_picture_value"])
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("flygformation", " ".join(item.raw_json.get("image_suggestions", [])).lower())
+        self.assertIn("Försvarsmaktens", " ".join(item.raw_json.get("access_guidance", [])))
+
     def test_civil_alert_press_meeting_is_prisma_and_zuma_picture_event(self):
         item = NewsItem(
             source_name="TT bildsignal",

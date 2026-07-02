@@ -115,7 +115,12 @@ sources:
     category: parliament_calendar
     priority: orange
   - name: Försvarsmakten nyheter
-    url: https://www.forsvarsmakten.se/sv/aktuellt/
+    url: https://www.forsvarsmakten.se/aktuellt/nyheter/
+    type: web
+    category: defence
+    priority: red
+  - name: Försvarsmakten press och media
+    url: https://www.forsvarsmakten.se/kontakt/press-och-media/
     type: web
     category: defence
     priority: red
