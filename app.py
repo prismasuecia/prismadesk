@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
 
 from desk import database
+from desk.models import NewsItem
+from desk.scoring import apply_temporal_guardrails, calculate_score
 from desk.update_runner import run_update
 
 
@@ -17,7 +19,13 @@ app.secret_key = os.getenv("PRISMA_DESK_SECRET_KEY") or os.getenv("PRISMA_DESK_P
 
 SECTIONS = OrderedDict(
     [
-        ("akut", {"title": "🔴🔴🔴 AKUT NU", "filter": lambda item: item["priority"] == "RED"}),
+        (
+            "akut",
+            {
+                "title": "🔴🔴🔴 AKUT NU",
+                "filter": lambda item: item["priority"] == "RED" and is_fresh(item),
+            },
+        ),
         (
             "zuma",
             {
@@ -25,17 +33,31 @@ SECTIONS = OrderedDict(
                 "filter": lambda item: (
                     item["desk"] in {"ZUMA", "BOTH"}
                     and item["priority"] != "RED"
-                    and from_json(item.get("raw_json")).get("temporal_status") not in {"OLD", "PAST_EVENT"}
+                    and is_fresh(item)
                 ),
             },
         ),
-        ("prisma", {"title": "🟠 PRISMA SUECIA — publicerbara stories", "filter": lambda item: item["desk"] in {"PRISMA", "BOTH"} and item["action_recommendation"] == "PUBLICERA_IDAG"}),
+        (
+            "prisma",
+            {
+                "title": "🟠 PRISMA SUECIA — publicerbara stories",
+                "filter": lambda item: (
+                    item["desk"] in {"PRISMA", "BOTH"}
+                    and item["action_recommendation"] == "PUBLICERA_IDAG"
+                    and is_fresh(item)
+                ),
+            },
+        ),
         ("press", {"title": "🟡 PRESSINBJUDNINGAR / ACKREDITERING", "filter": lambda item: item["accreditation_needed"] or item["deadline_detected"]}),
         ("community", {"title": "🔵 STOCKHOLM / COMMUNITY / KULTUR", "filter": lambda item: item["priority"] == "BLUE"}),
         ("vardag", {"title": "🟢 SVERIGE FÖRKLARAT / VARDAG", "filter": lambda item: item["priority"] == "GREEN"}),
         ("published", {"title": "⚪ REDAN PUBLICERAT / UNDVIK DUBLETTER", "filter": lambda item: item["prisma_status"] in {"REDAN_PUBLICERAD", "DELVIS_TÄCKT", "ENDAST_UPPDATERING"}}),
     ]
 )
+
+
+def is_fresh(item):
+    return from_json(item.get("raw_json")).get("temporal_status") not in {"OLD", "PAST_EVENT"}
 
 
 def is_press_or_accreditation(item):
@@ -62,6 +84,59 @@ SECTIONS["press"]["filter"] = is_press_or_accreditation
 
 def row_to_dict(row):
     return dict(row)
+
+
+def item_from_dict(item):
+    return NewsItem(
+        source_name=item.get("source_name") or "",
+        source_url=item.get("source_url") or "",
+        title=item.get("title") or "",
+        summary=item.get("summary") or "",
+        content=item.get("content") or "",
+        published_at=item.get("published_at"),
+        fetched_at=item.get("fetched_at") or "",
+        url=item.get("url") or "",
+        hash=item.get("hash") or "",
+        category=item.get("category") or "",
+        priority=item.get("priority") or "GREY",
+        desk=item.get("desk") or "IGNORE",
+        physical_presence=bool(item.get("physical_presence")),
+        accreditation_needed=None
+        if item.get("accreditation_needed") is None
+        else bool(item.get("accreditation_needed")),
+        deadline_detected=bool(item.get("deadline_detected")),
+        deadline_date=item.get("deadline_date"),
+        already_on_prisma=bool(item.get("already_on_prisma")),
+        prisma_status=item.get("prisma_status") or "EJ_PUBLICERAD",
+        action_recommendation=item.get("action_recommendation") or "KAN_VÄNTA",
+        score=int(item.get("score") or 0),
+        raw_json=from_json(item.get("raw_json")),
+    )
+
+
+def apply_live_temporal_guardrails(item):
+    live_item = apply_temporal_guardrails(item_from_dict(item))
+    live_item.score = calculate_score(live_item)
+    item.update(
+        {
+            "priority": live_item.priority,
+            "desk": live_item.desk,
+            "physical_presence": int(live_item.physical_presence),
+            "accreditation_needed": None
+            if live_item.accreditation_needed is None
+            else int(live_item.accreditation_needed),
+            "deadline_detected": int(live_item.deadline_detected),
+            "action_recommendation": live_item.action_recommendation,
+            "score": live_item.score,
+            "raw_json": json.dumps(live_item.raw_json, ensure_ascii=False),
+        }
+    )
+    return item
+
+
+def prepare_items_for_dashboard(items):
+    live_items = [apply_live_temporal_guardrails(item) for item in items]
+    return sorted(live_items, key=lambda item: (item.get("score") or 0, item.get("last_seen_at") or item.get("fetched_at") or ""), reverse=True)
 
 
 def auth_required() -> bool:
@@ -163,6 +238,7 @@ def dashboard():
         items = [row_to_dict(row) for row in database.latest_items()]
     else:
         items = [row_to_dict(row) for row in database.items_for_run(latest_run["id"])]
+    items = prepare_items_for_dashboard(items)
     message = request.args.get("message", "")
     return render_template(
         "dashboard.html",
@@ -184,6 +260,17 @@ def update():
         return redirect(url_for("dashboard"))
     result = run_update()
     message = f"Uppdatering klar: {result['saved']} nya sparade, {result['found']} fynd analyserade, {result['red_alerts']} rödalarm."
+    source_stats = result.get("source_stats") or {}
+    if source_stats:
+        message += (
+            " Källor: "
+            f"{source_stats.get('attempted', 0)}/{source_stats.get('configured', 0)} körda"
+        )
+        if source_stats.get("failed", 0):
+            message += f", {source_stats.get('failed')} fel"
+        if source_stats.get("skipped", 0):
+            message += f", {source_stats.get('skipped')} hoppade över"
+        message += "."
     if result["errors"]:
         message += f" {len(result['errors'])} källa/källor gav fel."
     return redirect(url_for("dashboard", message=message))

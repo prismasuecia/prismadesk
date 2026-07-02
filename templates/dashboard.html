@@ -18,6 +18,26 @@
       <span class="label">Status</span>
       <strong>{{ latest_run["status"] if latest_run else "Väntar" }}</strong>
     </div>
+    <div>
+      <span class="label">Källor körda</span>
+      <strong>
+        {% if latest_run and latest_run["sources_configured"] %}
+          {{ latest_run["sources_attempted"] }}/{{ latest_run["sources_configured"] }}
+        {% else %}
+          -
+        {% endif %}
+      </strong>
+    </div>
+    <div>
+      <span class="label">Källfel / överhoppade</span>
+      <strong>
+        {% if latest_run %}
+          {{ latest_run["sources_failed"] or 0 }} / {{ latest_run["sources_skipped"] or 0 }}
+        {% else %}
+          -
+        {% endif %}
+      </strong>
+    </div>
   </section>
 
   {% if message %}

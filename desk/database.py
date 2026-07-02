@@ -68,6 +68,11 @@ def init_db() -> None:
                 status TEXT,
                 items_found INTEGER DEFAULT 0,
                 red_alerts_found INTEGER DEFAULT 0,
+                sources_configured INTEGER DEFAULT 0,
+                sources_selected INTEGER DEFAULT 0,
+                sources_attempted INTEGER DEFAULT 0,
+                sources_failed INTEGER DEFAULT 0,
+                sources_skipped INTEGER DEFAULT 0,
                 errors TEXT
             );
             """
@@ -75,6 +80,11 @@ def init_db() -> None:
         for statement in [
             "ALTER TABLE items ADD COLUMN last_seen_run_id INTEGER",
             "ALTER TABLE items ADD COLUMN last_seen_at TEXT",
+            "ALTER TABLE runs ADD COLUMN sources_configured INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_selected INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_attempted INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_failed INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_skipped INTEGER DEFAULT 0",
         ]:
             try:
                 conn.execute(statement)
@@ -91,15 +101,45 @@ def start_run() -> int:
         return int(cursor.lastrowid)
 
 
-def finish_run(run_id: int, status: str, items_found: int, red_alerts_found: int, errors: list[str]) -> None:
+def finish_run(
+    run_id: int,
+    status: str,
+    items_found: int,
+    red_alerts_found: int,
+    errors: list[str],
+    source_stats: dict[str, int] | None = None,
+) -> None:
+    source_stats = source_stats or {}
     with get_connection() as conn:
         conn.execute(
             """
             UPDATE runs
-            SET finished_at = ?, status = ?, items_found = ?, red_alerts_found = ?, errors = ?
+            SET
+                finished_at = ?,
+                status = ?,
+                items_found = ?,
+                red_alerts_found = ?,
+                sources_configured = ?,
+                sources_selected = ?,
+                sources_attempted = ?,
+                sources_failed = ?,
+                sources_skipped = ?,
+                errors = ?
             WHERE id = ?
             """,
-            (utc_now_iso(), status, items_found, red_alerts_found, "\n".join(errors), run_id),
+            (
+                utc_now_iso(),
+                status,
+                items_found,
+                red_alerts_found,
+                source_stats.get("configured", 0),
+                source_stats.get("selected", 0),
+                source_stats.get("attempted", 0),
+                source_stats.get("failed", 0),
+                source_stats.get("skipped", 0),
+                "\n".join(errors),
+                run_id,
+            ),
         )
 
 
