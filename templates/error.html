@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="desk-section">
+    <div class="section-heading">
+      <h2>Serverfel</h2>
+      <span>500</span>
+    </div>
+    <p class="empty">{{ message }}</p>
+    <p class="why">Ladda om sidan om en deploy precis har gått klart. Om felet ligger kvar behöver Render-loggen kontrolleras.</p>
+  </section>
+{% endblock %}

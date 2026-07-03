@@ -1,12 +1,14 @@
 import json
 import os
 import secrets
+import traceback
 from collections import OrderedDict
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
+from werkzeug.exceptions import HTTPException
 
 from desk import database
 from desk.live_status import live_temporal_status
@@ -87,6 +89,30 @@ SECTIONS["press"]["filter"] = is_press_or_accreditation
 
 def row_to_dict(row):
     return dict(row)
+
+
+def normalize_latest_run(row):
+    if not row:
+        return None
+    data = dict(row)
+    defaults = {
+        "id": None,
+        "started_at": None,
+        "finished_at": None,
+        "status": "Väntar",
+        "items_found": 0,
+        "red_alerts_found": 0,
+        "sources_configured": 0,
+        "sources_selected": 0,
+        "sources_attempted": 0,
+        "sources_failed": 0,
+        "sources_skipped": 0,
+        "sources_total": 0,
+        "sources_fetched": 0,
+        "sources_skipped_names": "[]",
+        "errors": "",
+    }
+    return {**defaults, **data}
 
 
 def item_from_dict(item):
@@ -241,6 +267,20 @@ def add_private_headers(response):
     return response
 
 
+@app.errorhandler(Exception)
+def handle_exception(error):
+    if isinstance(error, HTTPException):
+        return error
+    traceback.print_exc()
+    return (
+        render_template(
+            "error.html",
+            message="Prisma Desk fick ett serverfel. Felet är loggat på servern.",
+        ),
+        500,
+    )
+
+
 @app.template_filter("from_json")
 def from_json(value):
     if not value:
@@ -305,7 +345,7 @@ def dashboard():
     if auth_redirect:
         return auth_redirect
     database.init_db()
-    latest_run = database.latest_run()
+    latest_run = normalize_latest_run(database.latest_run())
     view = request.args.get("view", "latest")
     source_view = "all" if view == "all" else "latest"
     if source_view == "all" or not latest_run:
@@ -391,6 +431,7 @@ def feedback_report():
     auth_redirect = require_auth()
     if auth_redirect:
         return auth_redirect
+    database.init_db()
     return render_template("feedback_report.html", rows=database.feedback_summary())
 
 
@@ -399,6 +440,7 @@ def source_health():
     auth_redirect = require_auth()
     if auth_redirect:
         return auth_redirect
+    database.init_db()
     return render_template("source_health.html", rows=database.source_health_rows())
 
 
