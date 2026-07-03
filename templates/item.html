@@ -2,6 +2,10 @@
   <div class="item-card__top">
     <span class="badge">{{ item["priority"] }}</span>
     <span class="desk">{{ item["desk"] }}</span>
+    {% set confidence = (item["raw_json"] | from_json).get("confidence") %}
+    {% if confidence %}
+      <span class="confidence-badge confidence-{{ confidence|lower }}">{{ confidence }}</span>
+    {% endif %}
     {% if item.get("is_new_since_last_visit") %}
       <span class="new-marker">NY</span>
     {% endif %}

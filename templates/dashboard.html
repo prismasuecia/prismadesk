@@ -7,7 +7,7 @@
       <strong>{{ latest_run["finished_at"] if latest_run and latest_run["finished_at"] else "Inte körd ännu" }}</strong>
     </div>
     <div>
-      <span class="label">{{ "Fynd i senaste körning" if view != "all" else "Fynd i databasen" }}</span>
+      <span class="label">{{ "Fynd i senaste körning" if source_view != "all" else "Fynd i databasen" }}</span>
       <strong>{{ total_items }}</strong>
     </div>
     <div>
@@ -49,8 +49,10 @@
   {% endif %}
 
   <nav class="view-switch" aria-label="Välj desk-vy">
-    <a href="{{ url_for('dashboard', view='latest') }}" aria-current="{{ 'page' if view != 'all' else 'false' }}">Senaste körning</a>
+    <a href="{{ url_for('dashboard', view='latest') }}" aria-current="{{ 'page' if view == 'latest' else 'false' }}">Senaste körning</a>
     <a href="{{ url_for('dashboard', view='all') }}" aria-current="{{ 'page' if view == 'all' else 'false' }}">Alla sparade fynd</a>
+    <a href="{{ url_for('dashboard', view='zuma') }}" aria-current="{{ 'page' if view == 'zuma' else 'false' }}">ZUMA</a>
+    <a href="{{ url_for('dashboard', view='prisma') }}" aria-current="{{ 'page' if view == 'prisma' else 'false' }}">Prisma</a>
   </nav>
 
   {% for key, section in sections.items() %}

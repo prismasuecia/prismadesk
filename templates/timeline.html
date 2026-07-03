@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="desk-section">
+    <div class="section-heading">
+      <h2>Tidslinje: kommande event och deadlines</h2>
+      <span>{{ grouped_by_date|length }}</span>
+    </div>
+
+    {% if grouped_by_date %}
+      {% for date, items in grouped_by_date.items() %}
+        <section class="timeline-day">
+          <h3>{{ date }}</h3>
+          <div class="cards">
+            {% for item in items %}
+              {% include "item.html" %}
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    {% else %}
+      <p class="empty">Inga kommande event eller deadlines hittades just nu.</p>
+    {% endif %}
+  </section>
+{% endblock %}

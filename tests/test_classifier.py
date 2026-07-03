@@ -83,6 +83,7 @@ class ClassifierTest(unittest.TestCase):
         self.assertEqual(item.priority, "ORANGE")
         self.assertEqual(item.desk, "PRISMA")
         self.assertEqual(item.action_recommendation, "PUBLICERA_IDAG")
+        self.assertIn(item.raw_json.get("confidence"), {"MEDIUM", "HIGH"})
 
     def test_royal_golden_wedding_in_stockholm_is_accreditation_alert(self):
         future = datetime.now(timezone.utc) + timedelta(days=2)

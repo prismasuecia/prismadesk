@@ -16,6 +16,7 @@
       {% if is_authenticated %}
         <div class="topbar-actions">
           <a class="ghost-link" href="{{ url_for('dashboard') }}">Desk</a>
+          <a class="ghost-link" href="{{ url_for('timeline') }}">Tidslinje</a>
           <a class="ghost-link" href="{{ url_for('feedback_report') }}">Feedback</a>
           <a class="ghost-link" href="{{ url_for('source_health') }}">Källhälsa</a>
           <form action="{{ url_for('update') }}" method="post">

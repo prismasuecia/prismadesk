@@ -399,7 +399,8 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     zuma_picture_place_terms = _contains_any(text, rules.get("zuma_picture_place_terms", []))
     prisma_terms = _contains_any(text, rules.get("prisma_terms", []))
     consequence_markers = rules.get("prisma_consequence_markers", [])
-    has_consequence_marker = any(marker.lower() in text.lower() for marker in consequence_markers)
+    matched_consequence_markers = _contains_any(text, consequence_markers)
+    has_consequence_marker = bool(matched_consequence_markers)
     generic_prisma_terms = {
         "Riksdagen",
         "proposition",
@@ -1004,33 +1005,45 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     if access_guidance:
         item.raw_json["access_guidance"] = access_guidance
 
+    matched_terms = {
+        "red_people": red_people,
+        "red_topics": red_topics,
+        "red_events": red_events,
+        "red_places": red_places,
+        "zuma": zuma_terms,
+        "zuma_picture_event": zuma_picture_event_terms,
+        "zuma_picture_subject": zuma_picture_subject_terms,
+        "zuma_picture_place": zuma_picture_place_terms,
+        "zuma_picture_value": ["true"] if zuma_picture_value else [],
+        "prisma": prisma_terms,
+        "prisma_consequence": matched_consequence_markers,
+        "sweden": sweden_terms,
+        "stockholm": stockholm_terms,
+        "outside_stockholm": outside_stockholm_terms,
+        "foreign_low_relevance": foreign_terms,
+        "major_visual_accident": major_visual_accident_terms,
+    }
     existing_why = item.raw_json.get("why_it_matters")
     item.raw_json.update(
         {
             "why_it_matters": existing_why
             or why_it_matters(item, red_people, red_topics, red_events, red_places, zuma_terms, prisma_terms),
-            "matched_terms": {
-                "red_people": red_people,
-                "red_topics": red_topics,
-                "red_events": red_events,
-                "red_places": red_places,
-                "zuma": zuma_terms,
-                "zuma_picture_event": zuma_picture_event_terms,
-                "zuma_picture_subject": zuma_picture_subject_terms,
-                "zuma_picture_place": zuma_picture_place_terms,
-                "zuma_picture_value": ["true"] if zuma_picture_value else [],
-                "prisma": prisma_terms,
-                "sweden": sweden_terms,
-                "stockholm": stockholm_terms,
-                "outside_stockholm": outside_stockholm_terms,
-                "foreign_low_relevance": foreign_terms,
-                "major_visual_accident": major_visual_accident_terms,
-            },
+            "matched_terms": matched_terms,
+            "confidence": calculate_confidence(matched_terms),
         }
     )
     apply_temporal_guardrails(item)
     item.score = calculate_score(item)
     return item
+
+
+def calculate_confidence(matched_terms: dict[str, list[str]]) -> str:
+    distinct_categories_hit = sum(1 for terms in matched_terms.values() if terms)
+    if distinct_categories_hit >= 3:
+        return "HIGH"
+    if distinct_categories_hit == 2:
+        return "MEDIUM"
+    return "LOW"
 
 
 def why_it_matters(

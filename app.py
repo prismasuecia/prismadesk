@@ -2,6 +2,7 @@ import json
 import os
 import secrets
 from collections import OrderedDict
+from datetime import datetime
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -147,6 +148,14 @@ def prepare_items_for_dashboard(items):
     return sorted(live_items, key=lambda item: (item.get("score") or 0, item.get("last_seen_at") or item.get("fetched_at") or ""), reverse=True)
 
 
+def apply_role_filter(items, view):
+    if view == "zuma":
+        return [item for item in items if item.get("desk") in {"ZUMA", "BOTH"}]
+    if view == "prisma":
+        return [item for item in items if item.get("desk") in {"PRISMA", "BOTH"}]
+    return items
+
+
 def apply_deadline_escalation(items):
     for item in items:
         hours_remaining = hours_until_deadline(item.get("deadline_date"))
@@ -157,6 +166,32 @@ def apply_deadline_escalation(items):
             item["deadline_urgent"] = True
             item["score"] = max(int(item.get("score") or 0), 900)
     return items
+
+
+def timeline_datetime(item):
+    raw = from_json(item.get("raw_json"))
+    for value in (
+        item.get("deadline_date"),
+        raw.get("detected_event_datetime"),
+        item.get("published_at"),
+        item.get("fetched_at"),
+    ):
+        if not value:
+            continue
+        try:
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            continue
+    return None
+
+
+def group_timeline_items(items):
+    grouped = OrderedDict()
+    for item in sorted(items, key=lambda candidate: timeline_datetime(candidate) or datetime.max):
+        timestamp = timeline_datetime(item)
+        key = timestamp.date().isoformat() if timestamp else "Utan datum"
+        grouped.setdefault(key, []).append(item)
+    return grouped
 
 
 def auth_required() -> bool:
@@ -254,11 +289,13 @@ def dashboard():
     database.init_db()
     latest_run = database.latest_run()
     view = request.args.get("view", "latest")
-    if view == "all" or not latest_run:
+    source_view = "all" if view == "all" else "latest"
+    if source_view == "all" or not latest_run:
         items = [row_to_dict(row) for row in database.latest_items()]
     else:
         items = [row_to_dict(row) for row in database.items_for_run(latest_run["id"])]
     items = prepare_items_for_dashboard(items)
+    items = apply_role_filter(items, view)
     previous_visit = database.get_last_viewed_at()
     new_since_last_visit = 0
     if previous_visit:
@@ -274,6 +311,7 @@ def dashboard():
         sections=build_sections(items),
         latest_run=latest_run,
         view=view,
+        source_view=source_view,
         total_items=len(items),
         red_alerts=sum(1 for item in items if item["priority"] == "RED"),
         previous_visit=previous_visit,
@@ -344,6 +382,23 @@ def source_health():
     if auth_redirect:
         return auth_redirect
     return render_template("source_health.html", rows=database.source_health_rows())
+
+
+@app.route("/timeline", methods=["GET"])
+def timeline():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    database.init_db()
+    items = [row_to_dict(row) for row in database.latest_items(limit=500)]
+    items = prepare_items_for_dashboard(items)
+    upcoming = [
+        item
+        for item in items
+        if from_json(item.get("raw_json")).get("temporal_status") == "UPCOMING"
+        or item.get("deadline_date")
+    ]
+    return render_template("timeline.html", grouped_by_date=group_timeline_items(upcoming))
 
 
 if __name__ == "__main__":
