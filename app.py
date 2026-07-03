@@ -2,7 +2,8 @@ import json
 import os
 import secrets
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -168,6 +169,25 @@ def apply_deadline_escalation(items):
     return items
 
 
+def parse_datetime(value):
+    if not value:
+        return None
+    text = str(value).strip()
+    parsers = (
+        lambda candidate: datetime.fromisoformat(candidate.replace("Z", "+00:00")),
+        parsedate_to_datetime,
+    )
+    for parser in parsers:
+        try:
+            timestamp = parser(text)
+        except (TypeError, ValueError, IndexError, OverflowError):
+            continue
+        if timestamp.tzinfo is None:
+            return timestamp.replace(tzinfo=timezone.utc)
+        return timestamp.astimezone(timezone.utc)
+    return None
+
+
 def timeline_datetime(item):
     raw = from_json(item.get("raw_json"))
     for value in (
@@ -176,18 +196,16 @@ def timeline_datetime(item):
         item.get("published_at"),
         item.get("fetched_at"),
     ):
-        if not value:
-            continue
-        try:
-            return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        except ValueError:
-            continue
+        timestamp = parse_datetime(value)
+        if timestamp:
+            return timestamp
     return None
 
 
 def group_timeline_items(items):
     grouped = OrderedDict()
-    for item in sorted(items, key=lambda candidate: timeline_datetime(candidate) or datetime.max):
+    fallback = datetime.max.replace(tzinfo=timezone.utc)
+    for item in sorted(items, key=lambda candidate: timeline_datetime(candidate) or fallback):
         timestamp = timeline_datetime(item)
         key = timestamp.date().isoformat() if timestamp else "Utan datum"
         grouped.setdefault(key, []).append(item)

@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from app import apply_role_filter, group_timeline_items
+from app import apply_role_filter, group_timeline_items, parse_datetime
 
 
 class ViewHelpersTest(unittest.TestCase):
@@ -34,3 +34,27 @@ class ViewHelpersTest(unittest.TestCase):
         grouped = group_timeline_items(items)
 
         self.assertEqual(list(grouped.keys()), ["2026-07-04", "2026-07-05"])
+
+    def test_timeline_accepts_mixed_datetime_formats(self):
+        items = [
+            {
+                "title": "rss",
+                "published_at": "Tue, 02 Jun 2026 14:21:15 GMT",
+                "raw_json": json.dumps({}),
+            },
+            {
+                "title": "iso-aware",
+                "published_at": "2026-06-03T07:24:36+00:00",
+                "raw_json": json.dumps({}),
+            },
+            {
+                "title": "iso-naive",
+                "published_at": "2026-06-04T08:00:00",
+                "raw_json": json.dumps({}),
+            },
+        ]
+
+        grouped = group_timeline_items(items)
+
+        self.assertEqual(list(grouped.keys()), ["2026-06-02", "2026-06-03", "2026-06-04"])
+        self.assertIsNotNone(parse_datetime("Tue, 02 Jun 2026 14:21:15 GMT"))
