@@ -481,6 +481,11 @@ main {
   text-align: left;
 }
 
+.feedback-table tr.source-warning td {
+  background: #fff0ef;
+  color: #7c231f;
+}
+
 .empty,
 .run-log {
   margin: 0;

@@ -398,6 +398,8 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     zuma_picture_subject_terms = _contains_any(text, rules.get("zuma_picture_subject_terms", []))
     zuma_picture_place_terms = _contains_any(text, rules.get("zuma_picture_place_terms", []))
     prisma_terms = _contains_any(text, rules.get("prisma_terms", []))
+    consequence_markers = rules.get("prisma_consequence_markers", [])
+    has_consequence_marker = any(marker.lower() in text.lower() for marker in consequence_markers)
     generic_prisma_terms = {
         "Riksdagen",
         "proposition",
@@ -816,12 +818,18 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     elif prisma_score >= 5:
         item.priority = "ORANGE"
         item.desk = "PRISMA"
-        item.action_recommendation = "PUBLICERA_IDAG"
+        item.action_recommendation = "PUBLICERA_IDAG" if has_consequence_marker else "FÖLJ_UPP"
+        if not has_consequence_marker:
+            item.raw_json["why_it_matters"] = (
+                "Prisma-relevant ämne, men texten saknar tydlig konsekvensmarkör. Följ upp vinkel och praktisk påverkan innan publicering."
+            )
         if item.category == "parliament_decisions" and high_impact_prisma_terms and "riksdagen sa ja" in text.lower():
+            item.action_recommendation = "PUBLICERA_IDAG"
             item.raw_json["why_it_matters"] = (
                 "Riksdagen har sagt ja till beslut som påverkar Prisma Suecias målgrupp. Kräver förklarande artikel."
             )
         elif is_committee_proposal:
+            item.action_recommendation = "PUBLICERA_IDAG"
             item.raw_json["why_it_matters"] = (
                 "Utskottets förslag påverkar rättigheter, vardag eller myndighetskontakt. Skriv tydligt att det är förslag till beslut, inte slutligt beslut."
             )

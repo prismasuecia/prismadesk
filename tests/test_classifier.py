@@ -52,6 +52,38 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.physical_presence)
         self.assertIn(item.action_recommendation, {"ÅK_DIT", "SÖK_ACKREDITERING", "RING_MAILA_NU"})
 
+    def test_prisma_topic_without_consequence_marker_is_follow_up(self):
+        item = NewsItem(
+            source_name="Test",
+            source_url="https://example.test",
+            title="Barnbidrag bostadsbidrag och socialförsäkring",
+            summary="Försäkringskassan och socialförsäkringen nämns i ett underlag.",
+            category="press_releases",
+            url="https://example.test/prisma",
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+
+    def test_prisma_topic_with_consequence_marker_is_publish_today(self):
+        item = NewsItem(
+            source_name="Test",
+            source_url="https://example.test",
+            title="Barnbidrag bostadsbidrag och socialförsäkring",
+            summary="Från och med januari börjar ett nytt krav gälla för Försäkringskassan.",
+            category="press_releases",
+            url="https://example.test/prisma",
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertEqual(item.action_recommendation, "PUBLICERA_IDAG")
+
     def test_royal_golden_wedding_in_stockholm_is_accreditation_alert(self):
         future = datetime.now(timezone.utc) + timedelta(days=2)
         item = NewsItem(

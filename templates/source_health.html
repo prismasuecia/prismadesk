@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="desk-section">
+    <div class="section-heading">
+      <h2>Källhälsa</h2>
+      <span>{{ rows|length }}</span>
+    </div>
+
+    {% if rows %}
+      <table class="feedback-table">
+        <thead>
+          <tr>
+            <th>Källa</th>
+            <th>Nollträffar i rad</th>
+            <th>Senast träff</th>
+            <th>Senast kollad</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr class="{{ 'source-warning' if row['consecutive_zero_runs'] >= 5 else '' }}">
+              <td>{{ row["source_name"] }}</td>
+              <td>{{ row["consecutive_zero_runs"] }}</td>
+              <td>{{ row["last_success_at"] or "-" }}</td>
+              <td>{{ row["last_checked_at"] or "-" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">Ingen källhälsa sparad ännu. Kör UPPDATERA DESK först.</p>
+    {% endif %}
+  </section>
+{% endblock %}

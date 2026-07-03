@@ -111,9 +111,12 @@ def run_update() -> dict:
                 break
             sources_attempted += 1
             try:
-                all_items.extend(fetch_source(source))
+                source_items = fetch_source(source)
+                database.update_source_health(source.get("name", "Okänd källa"), len(source_items))
+                all_items.extend(source_items)
             except Exception as exc:
                 sources_failed += 1
+                database.update_source_health(source.get("name", "Okänd källa"), 0)
                 errors.append(f"{source.get('name', 'Okänd källa')}: {exc}")
 
         try:

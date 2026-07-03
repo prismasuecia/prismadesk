@@ -661,6 +661,17 @@ prisma_terms:
   - frågestund
   - partiledardebatt
   - interpellationsdebatt
+prisma_consequence_markers:
+  - påverkar
+  - gäller för
+  - kan innebära att
+  - från och med
+  - nytt krav
+  - träder i kraft
+  - innebär att
+  - börjar gälla
+  - får rätt till
+  - måste
 mail_trigger_words:
   - pressinbjudan
   - pressträff

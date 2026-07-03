@@ -107,6 +107,13 @@ def init_db() -> None:
                 original_score INTEGER
             );
 
+            CREATE TABLE IF NOT EXISTS source_health (
+                source_name TEXT PRIMARY KEY,
+                consecutive_zero_runs INTEGER DEFAULT 0,
+                last_success_at TEXT,
+                last_checked_at TEXT
+            );
+
             INSERT OR IGNORE INTO view_state (id, last_viewed_at) VALUES (1, NULL);
             """
         )
@@ -489,5 +496,46 @@ def feedback_summary() -> list[sqlite3.Row]:
             FROM item_feedback
             GROUP BY feedback_type, original_priority
             ORDER BY n DESC
+            """
+        ).fetchall()
+
+
+def update_source_health(source_name: str, item_count: int) -> None:
+    now = utc_now_iso()
+    with get_connection() as conn:
+        if item_count > 0:
+            conn.execute(
+                """
+                INSERT INTO source_health
+                    (source_name, consecutive_zero_runs, last_success_at, last_checked_at)
+                VALUES (?, 0, ?, ?)
+                ON CONFLICT(source_name) DO UPDATE SET
+                    consecutive_zero_runs = 0,
+                    last_success_at = excluded.last_success_at,
+                    last_checked_at = excluded.last_checked_at
+                """,
+                (source_name, now, now),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO source_health
+                    (source_name, consecutive_zero_runs, last_checked_at)
+                VALUES (?, 1, ?)
+                ON CONFLICT(source_name) DO UPDATE SET
+                    consecutive_zero_runs = consecutive_zero_runs + 1,
+                    last_checked_at = excluded.last_checked_at
+                """,
+                (source_name, now),
+            )
+
+
+def source_health_rows() -> list[sqlite3.Row]:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT *
+            FROM source_health
+            ORDER BY consecutive_zero_runs DESC, last_checked_at DESC, source_name
             """
         ).fetchall()

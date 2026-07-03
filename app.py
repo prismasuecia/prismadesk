@@ -338,6 +338,14 @@ def feedback_report():
     return render_template("feedback_report.html", rows=database.feedback_summary())
 
 
+@app.route("/source-health", methods=["GET"])
+def source_health():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    return render_template("source_health.html", rows=database.source_health_rows())
+
+
 if __name__ == "__main__":
     database.init_db()
     port = int(os.getenv("PORT", "5050"))
