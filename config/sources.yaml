@@ -214,6 +214,31 @@ sources:
     type: web
     category: events
     priority: blue
+  - name: Songkick Stockholm alla konserter
+    url: https://www.songkick.com/metro-areas/32252-sweden-stockholm
+    type: web
+    category: concerts_all_stockholm
+    priority: orange
+  - name: Debaser Stockholm kalender
+    url: https://www.debaser.se/kalender
+    type: web
+    category: concert_venue
+    priority: blue
+  - name: Strawberry Arena events musik show
+    url: https://strawberryarena.se/en/events/music-show/
+    type: web
+    category: arena_stockholm
+    priority: orange
+  - name: Visit Stockholm konserter och festivaler
+    url: https://www.visitstockholm.com/eat-drink/nightlife/concerts-and-music-festivals/
+    type: web
+    category: concerts_all_stockholm
+    priority: blue
+  - name: Bandsintown Debaser Stockholm
+    url: https://www.bandsintown.com/v/10001994-debaser-hornstulls-strand
+    type: web
+    category: concert_venue
+    priority: blue
   - name: Stockholm Live press
     url: https://www.stockholmlive.com/press
     type: web

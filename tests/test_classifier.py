@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from ai.classifier import classify_item
+from ai.classifier import classify_item, score_latino_music_event
 from desk.models import NewsItem
 
 
@@ -525,6 +525,63 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("mobil", " ".join(item.raw_json.get("image_suggestions", [])).lower())
         self.assertIn("civil varning", item.raw_json.get("why_it_matters", ""))
+
+    def test_bad_bunny_strawberry_arena_is_strong_zuma_music_event(self):
+        text = "Bad Bunny gör historia med sin world tour och spelar två utsålda kvällar på Strawberry Arena i Stockholm."
+
+        score, matched = score_latino_music_event(text, self.rules)
+
+        self.assertEqual(score, 8)
+        self.assertTrue(matched["venue"])
+        self.assertTrue(matched["significance"])
+
+    def test_unknown_fictional_reggaeton_artist_is_also_caught(self):
+        text = (
+            "Okänd artisten El Fictivo gör sin första europaturné och spelar utsålt "
+            "på Annexet i Stockholm, reggaeton-scenen väntar ivrigt."
+        )
+
+        score, matched = score_latino_music_event(text, self.rules)
+
+        self.assertEqual(score, 8)
+        self.assertTrue(matched["genre"])
+        self.assertTrue(matched["venue"])
+
+    def test_local_swedish_pop_concert_is_not_flagged_as_latino_event(self):
+        text = "Benjamin Ingrosso spelar på Avicii Arena i november."
+
+        score, matched = score_latino_music_event(text, self.rules)
+
+        self.assertEqual(score, 0)
+        self.assertTrue(matched["venue"])
+
+    def test_latino_venue_and_genre_without_significance_gets_medium_score(self):
+        text = "Salsakväll på Fasching i Stockholm i helgen."
+
+        score, matched = score_latino_music_event(text, self.rules)
+
+        self.assertEqual(score, 4)
+        self.assertTrue(matched["genre"])
+
+    def test_strong_latino_music_event_becomes_prisma_and_zuma_card(self):
+        item = NewsItem(
+            source_name="Songkick Stockholm alla konserter",
+            source_url="https://www.songkick.com/metro-areas/32252-sweden-stockholm",
+            title="Bad Bunny på Strawberry Arena",
+            summary="Bad Bunny spelar två utsålda kvällar på Strawberry Arena i Stockholm under sin world tour.",
+            category="concerts_all_stockholm",
+            url="https://example.test/bad-bunny",
+            published_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertTrue(item.raw_json["matched_terms"]["latino_music"])
 
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(

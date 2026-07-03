@@ -109,6 +109,20 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "brottsbekämpning",
 }
 
+COMMON_SWEDISH_ARTIST_OR_NAME_WORDS = {
+    "Benjamin",
+    "Ingrosso",
+    "Lars",
+    "Winnerbäck",
+    "Håkan",
+    "Hellström",
+    "Veronica",
+    "Maggio",
+    "Molly",
+    "Sanden",
+    "Carola",
+}
+
 
 def _contains_any(text: str, terms: Iterable[str]) -> list[str]:
     matches: list[str] = []
@@ -120,6 +134,49 @@ def _contains_any(text: str, terms: Iterable[str]) -> list[str]:
         if re.search(pattern, text.lower()):
             matches.append(clean_term)
     return matches
+
+
+def _latin_artist_name_patterns(text: str) -> list[str]:
+    candidates = re.findall(r"\b([A-ZÅÄÖ][a-zåäö]+(?:\s+[A-ZÅÄÖ][a-zåäö]+){1,2})\b", text)
+    ignored = {
+        "Stockholm Sverige",
+        "Strawberry Arena",
+        "Avicii Arena",
+        "Gröna Lund",
+        "Debaser Stockholm",
+        "Kollektivet Livet",
+    }
+    matches: list[str] = []
+    for candidate in candidates:
+        words = candidate.split()
+        if candidate in ignored:
+            continue
+        if any(word in COMMON_SWEDISH_ARTIST_OR_NAME_WORDS for word in words):
+            continue
+        if candidate not in matches:
+            matches.append(candidate)
+    return matches[:5]
+
+
+def score_latino_music_event(text: str, rules: dict) -> tuple[int, dict]:
+    text_lower = text.lower()
+    venue_hits = [v for v in rules.get("zuma_stockholm_music_venues", []) if v in text_lower]
+    genre_hits = [g for g in rules.get("zuma_latino_music_genre_terms", []) if g in text_lower]
+    significance_hits = [s for s in rules.get("zuma_international_significance_terms", []) if s in text_lower]
+    artist_pattern_hits = _latin_artist_name_patterns(text)
+
+    matched = {
+        "venue": venue_hits,
+        "genre": genre_hits,
+        "significance": significance_hits,
+        "artist_pattern": artist_pattern_hits,
+    }
+
+    if venue_hits and significance_hits and (genre_hits or artist_pattern_hits):
+        return 8, matched
+    if venue_hits and genre_hits:
+        return 4, matched
+    return 0, matched
 
 
 def image_suggestions_for_item(
@@ -260,6 +317,33 @@ def image_suggestions_for_item(
                 "Landslagets ledarstab eller spelare vid pressbord, sponsorvägg eller spelarhotell inför VM.",
                 "Scandic Park, hotellentré, pressuppbåd och TV-kameror som visar landslagets VM-uppladdning i Stockholm.",
                 "Detaljer med landslagssymboler, träningskläder, mikrofoner och VM-relaterad pressmiljö.",
+            ]
+        )
+
+    if _contains_any(
+        text,
+        [
+            "reggaeton",
+            "latin trap",
+            "salsa",
+            "bachata",
+            "cumbia",
+            "merengue",
+            "strawberry arena",
+            "avicii arena",
+            "debaser",
+            "annexet",
+            "fållan",
+            "slaktkyrkan",
+            "fasching",
+        ],
+    ):
+        suggestions.extend(
+            [
+                "Publik och köer vid arenan eller konsertlokalen med tydlig Stockholm-platsmarkör.",
+                "Exteriör på Strawberry Arena, Avicii Arena, Debaser eller aktuell konsertlokal med skyltning eller affischer.",
+                "Fans med flaggor, artisttröjor eller latinamerikanska symboler, fotograferat respektfullt i offentlig miljö.",
+                "Breda publikbilder, entréflöden och city/arena-miljö som visar latinamerikansk musik som Stockholmshändelse.",
             ]
         )
 
@@ -424,6 +508,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     major_visual_accident_terms = _contains_any(text, rules.get("major_visual_accident_terms", []))
     stockholm_terms = _contains_any(text, rules.get("stockholm_priority_terms", []))
     outside_stockholm_terms = _contains_any(text, rules.get("outside_stockholm_terms", []))
+    latino_music_score, latino_music_matches = score_latino_music_event(text, rules)
     is_media = item.category in {"media_breaking", "media_national", "media_stockholm", "media_economy"}
     is_prisma_topic = bool(specific_prisma_terms or item.category in {
         "stockholm_city",
@@ -440,6 +525,9 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "media_stockholm",
         "media_economy",
         "politics",
+        "concerts_all_stockholm",
+        "concert_venue",
+        "arena_stockholm",
     })
 
     has_press_event = bool(
@@ -483,6 +571,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.physical_presence = False
 
     zuma_score = len(zuma_terms) * 2 + len(red_people) + len(red_topics) + len(red_places)
+    zuma_score += latino_music_score
     prisma_score = len(specific_prisma_terms) * 2
     image_suggestions = image_suggestions_for_item(item, text, prisma_terms, zuma_terms, stockholm_terms)
     has_news_agency_visual_theme = bool(
@@ -670,7 +759,23 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if stockholm_military_air_event:
+    if latino_music_score >= 8:
+        item.priority = "ORANGE"
+        item.desk = "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "RING_MAILA_NU"
+        item.raw_json["why_it_matters"] = (
+            "Latino- eller spanskspråkig musik med Stockholm-arena och internationell betydelsesignal: starkt ZUMA-bildläge och tydlig Prisma-community-relevans."
+        )
+    elif latino_music_score >= 4:
+        item.priority = "BLUE"
+        item.desk = "BOTH"
+        item.physical_presence = True
+        item.action_recommendation = "FÖLJ_UPP"
+        item.raw_json["why_it_matters"] = (
+            "Latino- eller spanskspråkigt musikevent i Stockholm: relevant för Prisma-community och möjlig ZUMA-featurebild."
+        )
+    elif stockholm_military_air_event:
         item.priority = "RED"
         item.desk = "ZUMA" if not is_prisma_topic else "BOTH"
         item.physical_presence = True
@@ -1022,6 +1127,12 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "outside_stockholm": outside_stockholm_terms,
         "foreign_low_relevance": foreign_terms,
         "major_visual_accident": major_visual_accident_terms,
+        "latino_music": (
+            latino_music_matches.get("venue", [])
+            + latino_music_matches.get("genre", [])
+            + latino_music_matches.get("significance", [])
+            + latino_music_matches.get("artist_pattern", [])
+        ),
     }
     existing_why = item.raw_json.get("why_it_matters")
     item.raw_json.update(

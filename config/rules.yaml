@@ -490,6 +490,14 @@ stockholm_priority_terms:
   - Tele2 Arena
   - Strawberry Arena
   - Friends Arena
+  - Debaser
+  - Annexet
+  - Fållan
+  - Slaktkyrkan
+  - Fasching
+  - Gröna Lund
+  - Nalen
+  - Kollektivet Livet
 outside_stockholm_terms:
   - Helsingborg
   - Revinge
@@ -672,6 +680,39 @@ prisma_consequence_markers:
   - börjar gälla
   - får rätt till
   - måste
+zuma_latino_music_genre_terms:
+  - reggaeton
+  - latin trap
+  - salsa
+  - bachata
+  - cumbia
+  - merengue
+  - banda
+  - andinsk folkmusik
+  - andean folk
+  - kizomba
+  - son cubano
+zuma_international_significance_terms:
+  - world tour
+  - första europaturné
+  - första europaturnén
+  - första gången i sverige
+  - sålde slut
+  - utsåld
+  - utsålda
+  - rekordpublik
+  - grammy
+zuma_stockholm_music_venues:
+  - strawberry arena
+  - avicii arena
+  - debaser
+  - annexet
+  - fållan
+  - slaktkyrkan
+  - fasching
+  - gröna lund
+  - nalen
+  - kollektivet livet
 mail_trigger_words:
   - pressinbjudan
   - pressträff
