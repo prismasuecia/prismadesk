@@ -315,7 +315,9 @@ main {
 }
 
 .badge,
-.desk {
+.desk,
+.deadline-badge,
+.new-marker {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -326,6 +328,21 @@ main {
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+.deadline-badge {
+  background: #f8e8b8;
+  color: #5b4310;
+}
+
+.deadline-badge--urgent {
+  background: var(--red);
+  color: white;
+}
+
+.new-marker {
+  background: var(--blue);
+  color: white;
 }
 
 .item-card h3 {
@@ -361,6 +378,24 @@ main {
   margin-bottom: 0;
   color: #3b4248;
   line-height: 1.5;
+}
+
+.cluster-sources {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #faf7ef;
+  color: var(--muted);
+}
+
+.cluster-sources summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.cluster-sources ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
 }
 
 .image-suggestions {

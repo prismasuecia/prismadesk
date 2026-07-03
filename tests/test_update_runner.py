@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from desk.update_runner import load_sources
+from desk.update_runner import _maybe_read_mail, load_sources
 
 
 class UpdateRunnerTest(unittest.TestCase):
@@ -21,3 +21,7 @@ class UpdateRunnerTest(unittest.TestCase):
         with patch.dict(os.environ, {"PRISMA_SOURCE_LIMIT": "5"}, clear=False):
             with patch("desk.update_runner.load_yaml", return_value={"sources": sources}):
                 self.assertEqual(len(load_sources()), 5)
+
+    def test_mail_reader_is_disabled_by_default(self):
+        with patch.dict(os.environ, {"ENABLE_MAIL": "false"}, clear=False):
+            self.assertEqual(_maybe_read_mail(), [])

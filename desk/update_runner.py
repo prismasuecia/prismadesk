@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ai.classifier import classify_item
 from desk import database
+from desk.clustering import cluster_new_items
 from desk.models import NewsItem
 from desk.scoring import stable_item_hash
 from feeds.rss_reader import read_rss_source
@@ -58,6 +59,16 @@ def fetch_source(source: dict) -> list[NewsItem]:
     return read_web_source(source)
 
 
+def _maybe_read_mail() -> list[NewsItem]:
+    if os.getenv("ENABLE_MAIL", "false").lower() != "true":
+        return []
+    try:
+        from mail.imap_reader import read_recent_mail
+    except ModuleNotFoundError:
+        return []
+    return read_recent_mail()
+
+
 def run_update() -> dict:
     load_dotenv(BASE_DIR / ".env")
     database.init_db()
@@ -67,11 +78,17 @@ def run_update() -> dict:
     errors: list[str] = []
     all_items: list[NewsItem] = []
     prisma_articles = []
-    configured_sources = count_configured_sources()
+    all_sources = load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
+    configured_sources = len(all_sources)
     selected_sources = load_sources()
     sources_attempted = 0
     sources_failed = 0
     sources_skipped = max(configured_sources - len(selected_sources), 0)
+    sources_skipped_names = [
+        source.get("name", "Okänd källa")
+        for source in all_sources
+        if source not in selected_sources
+    ]
 
     try:
         site_url = __import__("os").getenv("PRISMA_SITE_URL", "https://www.prismasuecia.se")
@@ -83,10 +100,14 @@ def run_update() -> dict:
 
         for source in selected_sources:
             if max_seconds and time.monotonic() - started > max_seconds:
+                remaining_sources = selected_sources[sources_attempted:]
                 errors.append(
                     f"Tidsbudget nådd efter {int(max_seconds)} sekunder. Kör igen för fler källor."
                 )
-                sources_skipped += max(len(selected_sources) - sources_attempted, 0)
+                sources_skipped += len(remaining_sources)
+                sources_skipped_names.extend(
+                    source.get("name", "Okänd källa") for source in remaining_sources
+                )
                 break
             sources_attempted += 1
             try:
@@ -95,13 +116,10 @@ def run_update() -> dict:
                 sources_failed += 1
                 errors.append(f"{source.get('name', 'Okänd källa')}: {exc}")
 
-        if os.getenv("ENABLE_MAIL", "false").lower() == "true":
-            try:
-                from mail.imap_reader import read_recent_mail
-
-                all_items.extend(read_recent_mail())
-            except Exception as exc:
-                errors.append(f"Mail: {exc}")
+        try:
+            all_items.extend(_maybe_read_mail())
+        except Exception as exc:
+            errors.append(f"Mail: {exc}")
 
         unique_items: dict[str, NewsItem] = {}
         for item in all_items:
@@ -119,6 +137,12 @@ def run_update() -> dict:
             classified.append(item)
 
         saved_count = database.save_items(classified, run_id=run_id)
+        run_items = [dict(row) for row in database.items_for_run(run_id, limit=1000)]
+        recent_items = [dict(row) for row in database.items_in_window(hours=72)]
+        clusters = cluster_new_items(run_items, recent_items)
+        for cluster_key, item_ids in clusters.items():
+            if len(item_ids) > 1:
+                database.save_cluster(cluster_key, item_ids)
         red_alerts = sum(1 for item in classified if item.priority == "RED")
         source_stats = {
             "configured": configured_sources,
@@ -126,6 +150,7 @@ def run_update() -> dict:
             "attempted": sources_attempted,
             "failed": sources_failed,
             "skipped": sources_skipped,
+            "skipped_names": sources_skipped_names,
         }
         database.finish_run(
             run_id,
@@ -141,6 +166,10 @@ def run_update() -> dict:
             "red_alerts": red_alerts,
             "errors": errors,
             "source_stats": source_stats,
+            "sources_total": configured_sources,
+            "sources_fetched": sources_attempted,
+            "sources_skipped": sources_skipped,
+            "sources_skipped_names": sources_skipped_names,
         }
     except Exception as exc:
         errors.append(str(exc))

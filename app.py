@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
 
 from desk import database
+from desk.live_status import live_temporal_status
 from desk.models import NewsItem
-from desk.scoring import apply_temporal_guardrails, calculate_score
+from desk.scoring import apply_temporal_guardrails, calculate_score, hours_until_deadline
 from desk.update_runner import run_update
 
 
@@ -116,6 +117,7 @@ def item_from_dict(item):
 
 def apply_live_temporal_guardrails(item):
     live_item = apply_temporal_guardrails(item_from_dict(item))
+    live_item.raw_json["temporal_status"] = live_temporal_status(item)
     live_item.score = calculate_score(live_item)
     item.update(
         {
@@ -135,8 +137,26 @@ def apply_live_temporal_guardrails(item):
 
 
 def prepare_items_for_dashboard(items):
-    live_items = [apply_live_temporal_guardrails(item) for item in items]
+    enriched_items = database.enrich_with_cluster_info(items)
+    live_items = [
+        apply_live_temporal_guardrails(item)
+        for item in enriched_items
+        if item.get("cluster_is_primary", True)
+    ]
+    live_items = apply_deadline_escalation(live_items)
     return sorted(live_items, key=lambda item: (item.get("score") or 0, item.get("last_seen_at") or item.get("fetched_at") or ""), reverse=True)
+
+
+def apply_deadline_escalation(items):
+    for item in items:
+        hours_remaining = hours_until_deadline(item.get("deadline_date"))
+        if hours_remaining is None:
+            continue
+        item["deadline_hours_remaining"] = round(hours_remaining, 1)
+        if 0 <= hours_remaining <= 48:
+            item["deadline_urgent"] = True
+            item["score"] = max(int(item.get("score") or 0), 900)
+    return items
 
 
 def auth_required() -> bool:
@@ -239,6 +259,15 @@ def dashboard():
     else:
         items = [row_to_dict(row) for row in database.items_for_run(latest_run["id"])]
     items = prepare_items_for_dashboard(items)
+    previous_visit = database.get_last_viewed_at()
+    new_since_last_visit = 0
+    if previous_visit:
+        for item in items:
+            is_new = bool(item.get("fetched_at") and item["fetched_at"] > previous_visit)
+            item["is_new_since_last_visit"] = is_new
+            if is_new:
+                new_since_last_visit += 1
+    database.mark_viewed_now()
     message = request.args.get("message", "")
     return render_template(
         "dashboard.html",
@@ -247,6 +276,8 @@ def dashboard():
         view=view,
         total_items=len(items),
         red_alerts=sum(1 for item in items if item["priority"] == "RED"),
+        previous_visit=previous_visit,
+        new_since_last_visit=new_since_last_visit,
         message=message,
     )
 

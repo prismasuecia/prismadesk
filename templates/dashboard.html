@@ -44,6 +44,10 @@
     <p class="flash">{{ message }}</p>
   {% endif %}
 
+  {% if previous_visit and new_since_last_visit > 0 %}
+    <p class="flash">NYTT: {{ new_since_last_visit }} nya fynd sedan {{ previous_visit }}</p>
+  {% endif %}
+
   <nav class="view-switch" aria-label="Välj desk-vy">
     <a href="{{ url_for('dashboard', view='latest') }}" aria-current="{{ 'page' if view != 'all' else 'false' }}">Senaste körning</a>
     <a href="{{ url_for('dashboard', view='all') }}" aria-current="{{ 'page' if view == 'all' else 'false' }}">Alla sparade fynd</a>

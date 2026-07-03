@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 
@@ -47,6 +48,7 @@ def init_db() -> None:
                 score INTEGER,
                 last_seen_run_id INTEGER,
                 last_seen_at TEXT,
+                cluster_id INTEGER,
                 raw_json TEXT
             );
 
@@ -73,18 +75,41 @@ def init_db() -> None:
                 sources_attempted INTEGER DEFAULT 0,
                 sources_failed INTEGER DEFAULT 0,
                 sources_skipped INTEGER DEFAULT 0,
+                sources_total INTEGER DEFAULT 0,
+                sources_fetched INTEGER DEFAULT 0,
+                sources_skipped_names TEXT,
                 errors TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS story_clusters (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cluster_key TEXT UNIQUE,
+                primary_item_id INTEGER,
+                member_item_ids TEXT,
+                created_at TEXT,
+                updated_at TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS view_state (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                last_viewed_at TEXT
+            );
+
+            INSERT OR IGNORE INTO view_state (id, last_viewed_at) VALUES (1, NULL);
             """
         )
         for statement in [
             "ALTER TABLE items ADD COLUMN last_seen_run_id INTEGER",
             "ALTER TABLE items ADD COLUMN last_seen_at TEXT",
+            "ALTER TABLE items ADD COLUMN cluster_id INTEGER",
             "ALTER TABLE runs ADD COLUMN sources_configured INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_selected INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_attempted INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_failed INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_skipped INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_total INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_fetched INTEGER DEFAULT 0",
+            "ALTER TABLE runs ADD COLUMN sources_skipped_names TEXT",
         ]:
             try:
                 conn.execute(statement)
@@ -124,6 +149,9 @@ def finish_run(
                 sources_attempted = ?,
                 sources_failed = ?,
                 sources_skipped = ?,
+                sources_total = ?,
+                sources_fetched = ?,
+                sources_skipped_names = ?,
                 errors = ?
             WHERE id = ?
             """,
@@ -137,6 +165,9 @@ def finish_run(
                 source_stats.get("attempted", 0),
                 source_stats.get("failed", 0),
                 source_stats.get("skipped", 0),
+                source_stats.get("configured", 0),
+                source_stats.get("attempted", 0),
+                json.dumps(source_stats.get("skipped_names", []), ensure_ascii=False),
                 "\n".join(errors),
                 run_id,
             ),
@@ -284,6 +315,118 @@ def items_for_run(run_id: int, limit: int = 200) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def items_in_window(hours: int = 72) -> list[sqlite3.Row]:
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM items
+            WHERE fetched_at >= ?
+            ORDER BY score DESC, fetched_at DESC, id DESC
+            """,
+            (cutoff,),
+        ).fetchall()
+
+
+def save_cluster(cluster_key: str, item_ids: list[int]) -> None:
+    if not item_ids:
+        return
+    with get_connection() as conn:
+        placeholders = ",".join("?" for _ in item_ids)
+        rows = conn.execute(
+            f"SELECT id, score FROM items WHERE id IN ({placeholders}) ORDER BY score DESC, id DESC",
+            item_ids,
+        ).fetchall()
+        if not rows:
+            return
+        sorted_ids = [int(row["id"]) for row in rows]
+        primary_id = sorted_ids[0]
+        now = utc_now_iso()
+        conn.execute(
+            """
+            INSERT INTO story_clusters
+                (cluster_key, primary_item_id, member_item_ids, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(cluster_key) DO UPDATE SET
+                primary_item_id = excluded.primary_item_id,
+                member_item_ids = excluded.member_item_ids,
+                updated_at = excluded.updated_at
+            """,
+            (cluster_key, primary_id, json.dumps(sorted_ids), now, now),
+        )
+        cluster_row = conn.execute(
+            "SELECT id FROM story_clusters WHERE cluster_key = ?",
+            (cluster_key,),
+        ).fetchone()
+        if not cluster_row:
+            return
+        conn.executemany(
+            "UPDATE items SET cluster_id = ? WHERE id = ?",
+            [(cluster_row["id"], item_id) for item_id in sorted_ids],
+        )
+
+
+def enrich_with_cluster_info(items: list[dict]) -> list[dict]:
+    cluster_ids = sorted({item.get("cluster_id") for item in items if item.get("cluster_id")})
+    if not cluster_ids:
+        for item in items:
+            item["cluster_is_primary"] = True
+            item["cluster_size"] = 1
+            item["cluster_other_sources"] = []
+        return items
+
+    placeholders = ",".join("?" for _ in cluster_ids)
+    with get_connection() as conn:
+        cluster_rows = conn.execute(
+            f"SELECT * FROM story_clusters WHERE id IN ({placeholders})",
+            cluster_ids,
+        ).fetchall()
+        clusters = {row["id"]: row for row in cluster_rows}
+        member_ids = set()
+        for row in cluster_rows:
+            member_ids.update(json.loads(row["member_item_ids"] or "[]"))
+
+        member_sources: dict[int, str] = {}
+        if member_ids:
+            member_placeholders = ",".join("?" for _ in member_ids)
+            rows = conn.execute(
+                f"SELECT id, source_name FROM items WHERE id IN ({member_placeholders})",
+                sorted(member_ids),
+            ).fetchall()
+            member_sources = {int(row["id"]): row["source_name"] for row in rows}
+
+    for item in items:
+        cluster = clusters.get(item.get("cluster_id"))
+        if not cluster:
+            item["cluster_is_primary"] = True
+            item["cluster_size"] = 1
+            item["cluster_other_sources"] = []
+            continue
+        member_ids = json.loads(cluster["member_item_ids"] or "[]")
+        item["cluster_is_primary"] = int(item["id"]) == int(cluster["primary_item_id"])
+        item["cluster_size"] = len(member_ids)
+        item["cluster_other_sources"] = [
+            member_sources.get(member_id, "Okänd källa")
+            for member_id in member_ids
+            if member_id != item["id"]
+        ]
+    return items
+
+
 def latest_run() -> sqlite3.Row | None:
     with get_connection() as conn:
         return conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT 1").fetchone()
+
+
+def get_last_viewed_at() -> str | None:
+    with get_connection() as conn:
+        row = conn.execute("SELECT last_viewed_at FROM view_state WHERE id = 1").fetchone()
+        return row["last_viewed_at"] if row else None
+
+
+def mark_viewed_now() -> None:
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE view_state SET last_viewed_at = ? WHERE id = 1",
+            (utc_now_iso(),),
+        )

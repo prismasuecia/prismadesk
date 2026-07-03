@@ -2,6 +2,14 @@
   <div class="item-card__top">
     <span class="badge">{{ item["priority"] }}</span>
     <span class="desk">{{ item["desk"] }}</span>
+    {% if item.get("is_new_since_last_visit") %}
+      <span class="new-marker">NY</span>
+    {% endif %}
+    {% if item.get("deadline_urgent") %}
+      <span class="deadline-badge deadline-badge--urgent">⏰ {{ item["deadline_hours_remaining"] }} h kvar</span>
+    {% elif item.get("deadline_hours_remaining") is not none %}
+      <span class="deadline-badge">Deadline om {{ item["deadline_hours_remaining"]|round(0, "floor")|int }} h</span>
+    {% endif %}
   </div>
 
   <h3>{{ item["title"] }}</h3>
@@ -46,6 +54,17 @@
   </dl>
 
   <p class="why">{{ (item["raw_json"] | from_json).get("why_it_matters", item["summary"] or "Ingen motivering sparad.") }}</p>
+
+  {% if item.get("cluster_size", 1) > 1 %}
+    <details class="cluster-sources">
+      <summary>+{{ item["cluster_size"] - 1 }} källor</summary>
+      <ul>
+        {% for source in item.get("cluster_other_sources", []) %}
+          <li>{{ source }}</li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endif %}
 
   {% set image_suggestions = (item["raw_json"] | from_json).get("image_suggestions", []) %}
   {% if image_suggestions %}

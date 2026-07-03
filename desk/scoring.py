@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
 from desk.models import NewsItem
@@ -66,6 +66,16 @@ def detect_deadline(text: str) -> tuple[bool, str | None]:
         if match:
             return True, match.group(0).strip()
     return False, None
+
+
+def hours_until_deadline(deadline_date: str | None, now: datetime | None = None) -> float | None:
+    if not deadline_date:
+        return None
+    now = now or datetime.now(timezone.utc)
+    parsed = parse_item_datetime(deadline_date)
+    if not parsed:
+        return None
+    return (parsed.astimezone(now.tzinfo) - now).total_seconds() / 3600
 
 
 def parse_item_datetime(value: str | None) -> datetime | None:

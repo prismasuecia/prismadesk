@@ -6,3 +6,8 @@ class AppImportTest(unittest.TestCase):
         from app import app
 
         self.assertIsNotNone(app)
+
+    def test_update_runner_imports(self):
+        from desk import update_runner
+
+        self.assertTrue(hasattr(update_runner, "run_update"))
