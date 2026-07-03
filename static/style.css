@@ -95,17 +95,24 @@ h1 {
   justify-content: flex-end;
 }
 
-.ghost-button {
+.ghost-button,
+.ghost-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 6px;
+  padding: 0 12px;
   background: var(--panel);
   color: var(--text);
   cursor: pointer;
   font-weight: 700;
+  text-decoration: none;
 }
 
-.ghost-button:hover {
+.ghost-button:hover,
+.ghost-link:hover {
   background: var(--panel-soft);
 }
 
@@ -434,6 +441,44 @@ main {
   width: max-content;
   color: var(--link);
   font-weight: 700;
+}
+
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.item-actions form {
+  margin: 0;
+}
+
+.item-actions button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.item-actions button:hover {
+  background: #dfd8cc;
+}
+
+.feedback-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.feedback-table th,
+.feedback-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
 }
 
 .empty,

@@ -307,6 +307,37 @@ def update():
     return redirect(url_for("dashboard", message=message))
 
 
+@app.route("/item/<int:item_id>/dismiss", methods=["POST"])
+def dismiss(item_id):
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    database.dismiss_item(item_id)
+    database.record_feedback(item_id, "dismissed")
+    return redirect(request.referrer or url_for("dashboard"))
+
+
+@app.route("/item/<int:item_id>/feedback", methods=["POST"])
+def feedback(item_id):
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    feedback_type = request.form.get("feedback_type", "")
+    note = request.form.get("note", "")
+    if feedback_type not in {"wrong_priority", "good_catch"}:
+        return "Ogiltig feedback-typ", 400
+    database.record_feedback(item_id, feedback_type, note)
+    return redirect(request.referrer or url_for("dashboard"))
+
+
+@app.route("/feedback-report", methods=["GET"])
+def feedback_report():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    return render_template("feedback_report.html", rows=database.feedback_summary())
+
+
 if __name__ == "__main__":
     database.init_db()
     port = int(os.getenv("PORT", "5050"))

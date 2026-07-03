@@ -49,6 +49,8 @@ def init_db() -> None:
                 last_seen_run_id INTEGER,
                 last_seen_at TEXT,
                 cluster_id INTEGER,
+                dismissed INTEGER DEFAULT 0,
+                dismissed_at TEXT,
                 raw_json TEXT
             );
 
@@ -95,6 +97,16 @@ def init_db() -> None:
                 last_viewed_at TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS item_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id INTEGER NOT NULL,
+                feedback_type TEXT NOT NULL,
+                note TEXT,
+                created_at TEXT,
+                original_priority TEXT,
+                original_score INTEGER
+            );
+
             INSERT OR IGNORE INTO view_state (id, last_viewed_at) VALUES (1, NULL);
             """
         )
@@ -102,6 +114,8 @@ def init_db() -> None:
             "ALTER TABLE items ADD COLUMN last_seen_run_id INTEGER",
             "ALTER TABLE items ADD COLUMN last_seen_at TEXT",
             "ALTER TABLE items ADD COLUMN cluster_id INTEGER",
+            "ALTER TABLE items ADD COLUMN dismissed INTEGER DEFAULT 0",
+            "ALTER TABLE items ADD COLUMN dismissed_at TEXT",
             "ALTER TABLE runs ADD COLUMN sources_configured INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_selected INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_attempted INTEGER DEFAULT 0",
@@ -277,11 +291,13 @@ def save_items(items: Iterable[NewsItem], run_id: int | None = None) -> int:
     return saved
 
 
-def latest_items(limit: int = 200) -> list[sqlite3.Row]:
+def latest_items(limit: int = 200, include_dismissed: bool = False) -> list[sqlite3.Row]:
+    where_clause = "" if include_dismissed else "WHERE COALESCE(dismissed, 0) = 0"
     with get_connection() as conn:
         return conn.execute(
-            """
+            f"""
             SELECT * FROM items
+            {where_clause}
             ORDER BY score DESC, fetched_at DESC, id DESC
             LIMIT ?
             """,
@@ -302,12 +318,14 @@ def items_since(started_at: str, limit: int = 200) -> list[sqlite3.Row]:
         ).fetchall()
 
 
-def items_for_run(run_id: int, limit: int = 200) -> list[sqlite3.Row]:
+def items_for_run(run_id: int, limit: int = 200, include_dismissed: bool = False) -> list[sqlite3.Row]:
+    dismissed_clause = "" if include_dismissed else "AND COALESCE(dismissed, 0) = 0"
     with get_connection() as conn:
         return conn.execute(
-            """
+            f"""
             SELECT * FROM items
             WHERE last_seen_run_id = ?
+            {dismissed_clause}
             ORDER BY score DESC, last_seen_at DESC, id DESC
             LIMIT ?
             """,
@@ -430,3 +448,46 @@ def mark_viewed_now() -> None:
             "UPDATE view_state SET last_viewed_at = ? WHERE id = 1",
             (utc_now_iso(),),
         )
+
+
+def dismiss_item(item_id: int) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE items SET dismissed = 1, dismissed_at = ? WHERE id = ?",
+            (utc_now_iso(), item_id),
+        )
+
+
+def record_feedback(item_id: int, feedback_type: str, note: str = "") -> None:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT priority, score FROM items WHERE id = ?",
+            (item_id,),
+        ).fetchone()
+        conn.execute(
+            """
+            INSERT INTO item_feedback
+                (item_id, feedback_type, note, created_at, original_priority, original_score)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                item_id,
+                feedback_type,
+                note,
+                utc_now_iso(),
+                row["priority"] if row else None,
+                row["score"] if row else None,
+            ),
+        )
+
+
+def feedback_summary() -> list[sqlite3.Row]:
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT feedback_type, original_priority, COUNT(*) AS n
+            FROM item_feedback
+            GROUP BY feedback_type, original_priority
+            ORDER BY n DESC
+            """
+        ).fetchall()

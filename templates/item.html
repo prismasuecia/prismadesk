@@ -94,4 +94,18 @@
   {% if item["url"] %}
     <a class="source-link" href="{{ item['url'] }}" target="_blank" rel="noreferrer">Öppna källa</a>
   {% endif %}
+
+  <div class="item-actions">
+    <form method="post" action="{{ url_for('dismiss', item_id=item['id']) }}">
+      <button type="submit">✓ Hantera</button>
+    </form>
+    <form method="post" action="{{ url_for('feedback', item_id=item['id']) }}">
+      <input type="hidden" name="feedback_type" value="wrong_priority">
+      <button type="submit">Fel prioritet</button>
+    </form>
+    <form method="post" action="{{ url_for('feedback', item_id=item['id']) }}">
+      <input type="hidden" name="feedback_type" value="good_catch">
+      <button type="submit">Bra fångst</button>
+    </form>
+  </div>
 </article>

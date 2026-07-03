@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="desk-section">
+    <div class="section-heading">
+      <h2>Feedbackrapport</h2>
+      <span>{{ rows|length }}</span>
+    </div>
+
+    {% if rows %}
+      <table class="feedback-table">
+        <thead>
+          <tr>
+            <th>Feedback</th>
+            <th>Ursprunglig prioritet</th>
+            <th>Antal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td>{{ row["feedback_type"] }}</td>
+              <td>{{ row["original_priority"] or "-" }}</td>
+              <td>{{ row["n"] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">Ingen feedback sparad ännu.</p>
+    {% endif %}
+  </section>
+{% endblock %}
