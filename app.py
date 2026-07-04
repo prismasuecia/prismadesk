@@ -165,12 +165,33 @@ def apply_live_temporal_guardrails(item):
 
 
 def prepare_items_for_dashboard(items):
-    enriched_items = database.enrich_with_cluster_info(items)
-    live_items = [
-        apply_live_temporal_guardrails(item)
-        for item in enriched_items
-        if item.get("cluster_is_primary", True)
-    ]
+    try:
+        enriched_items = database.enrich_with_cluster_info(items)
+    except Exception:
+        traceback.print_exc()
+        enriched_items = items
+        for item in enriched_items:
+            item["cluster_is_primary"] = True
+            item["cluster_size"] = 1
+            item["cluster_other_sources"] = []
+
+    live_items = []
+    for item in enriched_items:
+        if not item.get("cluster_is_primary", True):
+            continue
+        try:
+            live_items.append(apply_live_temporal_guardrails(item))
+        except Exception:
+            traceback.print_exc()
+            item["raw_json"] = json.dumps(
+                {
+                    **from_json(item.get("raw_json")),
+                    "temporal_status": "UNKNOWN",
+                    "why_it_matters": "Fyndet kunde inte räknas om live, men visas ändå så det inte tappas bort.",
+                },
+                ensure_ascii=False,
+            )
+            live_items.append(item)
     live_items = apply_deadline_escalation(live_items)
     return sorted(live_items, key=lambda item: (item.get("score") or 0, item.get("last_seen_at") or item.get("fetched_at") or ""), reverse=True)
 
@@ -378,6 +399,19 @@ def dashboard():
     )
 
 
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    try:
+        database.init_db()
+        latest_run = normalize_latest_run(database.latest_run())
+        item_count = len(database.latest_items(limit=5, include_dismissed=True))
+        status = latest_run["status"] if latest_run else "NO_RUNS"
+        return f"ok latest_run={status} sample_items={item_count}\n", 200
+    except Exception as exc:
+        traceback.print_exc()
+        return f"error {type(exc).__name__}: {exc}\n", 500
+
+
 @app.route("/update", methods=["GET", "POST"])
 def update():
     auth_redirect = require_auth()
@@ -385,7 +419,12 @@ def update():
         return auth_redirect
     if request.method == "GET":
         return redirect(url_for("dashboard"))
-    result = run_update()
+    try:
+        result = run_update()
+    except Exception as exc:
+        traceback.print_exc()
+        message = f"Uppdateringen kraschade: {type(exc).__name__}. Öppna Källhälsa eller Render-loggen för detaljer."
+        return redirect(url_for("dashboard", message=message))
     message = f"Uppdatering klar: {result['saved']} nya sparade, {result['found']} fynd analyserade, {result['red_alerts']} rödalarm."
     source_stats = result.get("source_stats") or {}
     if source_stats:
