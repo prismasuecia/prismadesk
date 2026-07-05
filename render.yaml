@@ -19,9 +19,9 @@ services:
       - key: PRISMA_DESK_SECRET_KEY
         generateValue: true
       - key: PRISMA_UPDATE_MAX_SECONDS
-        value: "45"
+        value: "18"
       - key: PRISMA_SOURCE_LIMIT
-        value: "40"
+        value: "18"
       - key: PRISMA_RSS_TIMEOUT
         value: "5"
       - key: PRISMA_WEB_TIMEOUT

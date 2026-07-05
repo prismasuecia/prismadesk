@@ -18,6 +18,8 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+WEB_REQUEST_MAX_SECONDS = 18.0
+WEB_REQUEST_MAX_SOURCES = 18
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -47,6 +49,20 @@ def load_sources() -> list[dict]:
     return sources
 
 
+def clamp_sources_for_web_request(sources: list[dict]) -> list[dict]:
+    if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
+        return sources
+    return sources[:WEB_REQUEST_MAX_SOURCES]
+
+
+def clamp_seconds_for_web_request(max_seconds: float) -> float:
+    if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
+        return max_seconds
+    if max_seconds <= 0:
+        return WEB_REQUEST_MAX_SECONDS
+    return min(max_seconds, WEB_REQUEST_MAX_SECONDS)
+
+
 def count_configured_sources() -> int:
     return len(load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", []))
 
@@ -74,13 +90,16 @@ def run_update() -> dict:
     database.init_db()
     run_id = database.start_run()
     started = time.monotonic()
-    max_seconds = float(os.getenv("PRISMA_UPDATE_MAX_SECONDS", "0") or "0")
+    max_seconds = clamp_seconds_for_web_request(
+        float(os.getenv("PRISMA_UPDATE_MAX_SECONDS", "0") or "0")
+    )
     errors: list[str] = []
     all_items: list[NewsItem] = []
     prisma_articles = []
     all_sources = load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
     configured_sources = len(all_sources)
-    selected_sources = load_sources()
+    configured_selected_sources = load_sources()
+    selected_sources = clamp_sources_for_web_request(configured_selected_sources)
     sources_attempted = 0
     sources_failed = 0
     sources_skipped = max(configured_sources - len(selected_sources), 0)
