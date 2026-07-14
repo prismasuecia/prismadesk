@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 import os
 import re
-from typing import Optional
+from typing import Optional, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -85,6 +85,17 @@ def _fix_mojibake(text: str) -> str:
         return text
 
 
+def _trim_regeringen_detail_text(text: str) -> str:
+    for marker in (
+        " Dela Facebook",
+        " Sidan är uppmärkt med följande kategorier",
+        " Relaterat ",
+    ):
+        if marker in text:
+            text = text.split(marker, 1)[0]
+    return text.strip()
+
+
 def _is_probably_content(title: str, href: str) -> bool:
     lowered = title.lower()
     if lowered in GENERIC_TITLES:
@@ -105,9 +116,45 @@ def _is_probably_content(title: str, href: str) -> bool:
     return bool(re.search(r"\b(20\d{2}|\d{1,2}\s+[a-zåäö]+)\b", lowered))
 
 
-def _read_regeringen_source(source: dict, soup: BeautifulSoup) -> list[NewsItem]:
+def _read_regeringen_detail(url: str, timeout: int) -> Tuple[str, Optional[str]]:
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=timeout)
+        response.raise_for_status()
+    except requests.RequestException:
+        return "", None
+
+    if not response.encoding or response.encoding.lower() in {"iso-8859-1", "latin-1"}:
+        response.encoding = response.apparent_encoding or "utf-8"
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    main = soup.find("main") or soup
+    text = _trim_regeringen_detail_text(_clean(main.get_text(" ", strip=True)))
+    date_match = re.search(
+        r"Publicerad\s+(\d{1,2}\s+[a-zåäö]+\s+\d{4})",
+        text,
+        flags=re.IGNORECASE,
+    )
+    return text[:3500], date_match.group(1).strip() if date_match else None
+
+
+def _should_fetch_regeringen_detail(title: str, context: str, already_found: int) -> bool:
+    text = f"{title} {context}".lower()
+    if already_found < 6:
+        return True
+    return bool(
+        re.search(
+            r"\b(pressträff|pressbriefing|presskonferens|pressinbjudan|bjuder\s+in|"
+            r"media\s+bjuds\s+in|föranmälan|ackreditering|rosenbad)\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _read_regeringen_source(source: dict, soup: BeautifulSoup, timeout: int) -> list[NewsItem]:
     items: list[NewsItem] = []
     seen: set[str] = set()
+    detail_timeout = max(1, min(timeout, int(os.getenv("PRISMA_REGERINGEN_DETAIL_TIMEOUT", "3"))))
 
     for link in soup.find_all("a", href=True):
         href = urljoin(source["url"], link["href"])
@@ -121,18 +168,23 @@ def _read_regeringen_source(source: dict, soup: BeautifulSoup) -> list[NewsItem]
         container = link.find_parent("li") or link.find_parent("div")
         context = _clean(container.get_text(" ", strip=True)) if container else title
         date_match = re.search(r"Publicerad\s+([^·]+)", context)
+        detail_text = ""
+        detail_date = None
+        if _should_fetch_regeringen_detail(title, context, len(items)):
+            detail_text, detail_date = _read_regeringen_detail(href, detail_timeout)
+        full_context = detail_text or context
 
         items.append(
             NewsItem(
                 source_name=source["name"],
                 source_url=source["url"],
                 title=title,
-                summary=context,
-                content=context,
-                published_at=date_match.group(1).strip() if date_match else None,
+                summary=full_context[:800],
+                content=full_context,
+                published_at=detail_date or (date_match.group(1).strip() if date_match else None),
                 url=href,
                 category=source.get("category", ""),
-                raw_json={"source_type": "web_regeringen"},
+                raw_json={"source_type": "web_regeringen", "detail_fetched": bool(detail_text)},
             )
         )
         seen.add(href)
@@ -151,7 +203,7 @@ def read_web_source(source: dict, timeout: Optional[int] = None) -> list[NewsIte
     soup = BeautifulSoup(response.text, "html.parser")
 
     if "regeringen.se" in source["url"]:
-        return _read_regeringen_source(source, soup)
+        return _read_regeringen_source(source, soup, timeout)
 
     candidates: list[NewsItem] = []
     seen: set[str] = set()

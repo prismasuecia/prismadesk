@@ -141,6 +141,39 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertIn("Akut Prisma-läge", item.raw_json.get("why_it_matters", ""))
 
+    def test_government_sd_rosenbad_press_meeting_with_registration_is_red_alert(self):
+        tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+        event_date = swedish_date(tomorrow)
+        item = NewsItem(
+            source_name="Regeringen pressmeddelanden web",
+            source_url="https://www.regeringen.se/pressmeddelanden/",
+            title="Regeringen och Sverigedemokraterna bjuder in till pressträff",
+            summary=(
+                f"Tisdag den {event_date} klockan 10.00 bjuder regeringen och "
+                "Sverigedemokraterna in till pressträff efter ett extra "
+                "regeringssammanträde. Tid: "
+                f"{event_date} kl. 10.00. Plats: Rosenbad. "
+                "Obligatorisk föranmälan senast kl. 09.00. "
+                "Giltig presslegitimation krävs."
+            ),
+            category="government",
+            url=(
+                "https://www.regeringen.se/pressmeddelanden/2026/07/"
+                "regeringen-och-sverigedemokraterna-bjuder-in-till-presstraff2/"
+            ),
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+            raw_json={"source_type": "web_regeringen", "detail_fetched": True},
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertTrue(item.accreditation_needed)
+        self.assertIn(item.action_recommendation, {"SÖK_ACKREDITERING", "RING_MAILA_NU"})
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+
     def test_yesterday_date_only_press_meeting_is_past_event(self):
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)
         item = NewsItem(
