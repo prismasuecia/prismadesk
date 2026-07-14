@@ -443,6 +443,26 @@ def latest_run() -> sqlite3.Row | None:
         return conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT 1").fetchone()
 
 
+def mark_stale_running_runs(max_age_minutes: int = 10) -> int:
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)).isoformat(
+        timespec="seconds"
+    )
+    with get_connection() as conn:
+        cursor = conn.execute(
+            """
+            UPDATE runs
+            SET
+                finished_at = ?,
+                status = 'FAILED',
+                errors = COALESCE(NULLIF(errors, ''), 'Körningen avbröts innan den hann avslutas.')
+            WHERE status = 'RUNNING'
+              AND started_at < ?
+            """,
+            (utc_now_iso(), cutoff),
+        )
+        return int(cursor.rowcount)
+
+
 def get_last_viewed_at() -> str | None:
     with get_connection() as conn:
         row = conn.execute("SELECT last_viewed_at FROM view_state WHERE id = 1").fetchone()

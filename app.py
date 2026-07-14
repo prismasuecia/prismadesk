@@ -366,6 +366,7 @@ def dashboard():
     if auth_redirect:
         return auth_redirect
     database.init_db()
+    database.mark_stale_running_runs()
     latest_run = normalize_latest_run(database.latest_run())
     view = request.args.get("view", "latest")
     source_view = "all" if view == "all" else "latest"
@@ -403,6 +404,7 @@ def dashboard():
 def healthz():
     try:
         database.init_db()
+        database.mark_stale_running_runs()
         latest_run = normalize_latest_run(database.latest_run())
         item_count = len(database.latest_items(limit=5, include_dismissed=True))
         status = latest_run["status"] if latest_run else "NO_RUNS"
@@ -419,6 +421,7 @@ def update():
         return auth_redirect
     if request.method == "GET":
         return redirect(url_for("dashboard"))
+    database.mark_stale_running_runs()
     try:
         result = run_update()
     except Exception as exc:
