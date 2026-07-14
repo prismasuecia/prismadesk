@@ -421,6 +421,7 @@ def update():
         return auth_redirect
     if request.method == "GET":
         return redirect(url_for("dashboard"))
+    database.init_db()
     database.mark_stale_running_runs()
     try:
         result = run_update()
