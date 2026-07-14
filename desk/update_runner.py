@@ -18,8 +18,8 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-WEB_REQUEST_MAX_SECONDS = 18.0
-WEB_REQUEST_MAX_SOURCES = 24
+WEB_REQUEST_MAX_SECONDS = 14.0
+WEB_REQUEST_MAX_SOURCES = 20
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -28,17 +28,8 @@ SOURCE_PRIORITY_ORDER = {
     "green": 4,
 }
 DEFAULT_DESK_MIX_SOURCE_NAMES = [
-    "Regeringen pressmeddelanden",
     "Regeringen pressmeddelanden web",
-    "Regeringen kalendarium statsråd",
-    "Regeringen statsministern",
     "Via TT",
-    "Kungahuset kalender",
-    "Försvarsmakten Mynewsdesk event",
-    "Polisen press Stockholm",
-    "Riksdagen kalender kammaren",
-    "Stockholms stad aktuellt",
-    "Stockholms stad Via TT",
     "DN Kalendariet",
     "Visit Stockholm events",
     "Visit Stockholm startsida",
@@ -46,6 +37,15 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Debaser Stockholm kalender",
     "Casa Latina Sverige",
     "Instituto Cervantes Stockholm",
+    "Stockholms stad aktuellt",
+    "Stockholms stad Via TT",
+    "Polisen press Stockholm",
+    "Riksdagen kalender kammaren",
+    "Kungahuset kalender",
+    "Försvarsmakten Mynewsdesk event",
+    "Regeringen pressmeddelanden",
+    "Regeringen kalendarium statsråd",
+    "Regeringen statsministern",
     "SVT Stockholm",
     "P4 Stockholm",
 ]
@@ -109,11 +109,12 @@ def count_configured_sources() -> int:
 
 
 def fetch_source(source: dict) -> list[NewsItem]:
+    timeout = int(os.getenv("PRISMA_SOURCE_FETCH_TIMEOUT", "3"))
     if source.get("type") == "rss":
-        return read_rss_source(source)
+        return read_rss_source(source, timeout=timeout)
     if source.get("type") == "ical":
-        return read_ical_source(source)
-    return read_web_source(source)
+        return read_ical_source(source, timeout=timeout)
+    return read_web_source(source, timeout=timeout)
 
 
 def _maybe_read_mail() -> list[NewsItem]:

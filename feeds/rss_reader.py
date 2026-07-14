@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import feedparser
 import requests
@@ -7,8 +8,8 @@ from desk.models import NewsItem
 from feeds.web_reader import HEADERS
 
 
-def read_rss_source(source: dict) -> list[NewsItem]:
-    timeout = int(os.getenv("PRISMA_RSS_TIMEOUT", "8"))
+def read_rss_source(source: dict, timeout: Optional[int] = None) -> list[NewsItem]:
+    timeout = timeout or int(os.getenv("PRISMA_RSS_TIMEOUT", "8"))
     response = requests.get(source["url"], headers=HEADERS, timeout=timeout)
     response.raise_for_status()
     parsed = feedparser.parse(response.content)
