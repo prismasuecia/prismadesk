@@ -19,7 +19,7 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 WEB_REQUEST_MAX_SECONDS = 18.0
-WEB_REQUEST_MAX_SOURCES = 18
+WEB_REQUEST_MAX_SOURCES = 24
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -27,6 +27,28 @@ SOURCE_PRIORITY_ORDER = {
     "blue": 3,
     "green": 4,
 }
+DEFAULT_DESK_MIX_SOURCE_NAMES = [
+    "Regeringen pressmeddelanden",
+    "Regeringen pressmeddelanden web",
+    "Regeringen kalendarium statsråd",
+    "Regeringen statsministern",
+    "Via TT",
+    "Kungahuset kalender",
+    "Försvarsmakten Mynewsdesk event",
+    "Polisen press Stockholm",
+    "Riksdagen kalender kammaren",
+    "Stockholms stad aktuellt",
+    "Stockholms stad Via TT",
+    "DN Kalendariet",
+    "Visit Stockholm events",
+    "Visit Stockholm startsida",
+    "Songkick Stockholm alla konserter",
+    "Debaser Stockholm kalender",
+    "Casa Latina Sverige",
+    "Instituto Cervantes Stockholm",
+    "SVT Stockholm",
+    "P4 Stockholm",
+]
 
 
 def load_yaml(path: Path) -> dict:
@@ -52,7 +74,26 @@ def load_sources() -> list[dict]:
 def clamp_sources_for_web_request(sources: list[dict]) -> list[dict]:
     if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
         return sources
-    return sources[:WEB_REQUEST_MAX_SOURCES]
+    by_name = {source.get("name"): source for source in sources}
+    selected: list[dict] = []
+    seen: set[str] = set()
+
+    for name in DEFAULT_DESK_MIX_SOURCE_NAMES:
+        source = by_name.get(name)
+        if source and name not in seen:
+            selected.append(source)
+            seen.add(name)
+
+    for source in sources:
+        name = source.get("name")
+        if name in seen:
+            continue
+        selected.append(source)
+        seen.add(name)
+        if len(selected) >= WEB_REQUEST_MAX_SOURCES:
+            break
+
+    return selected[:WEB_REQUEST_MAX_SOURCES]
 
 
 def clamp_seconds_for_web_request(max_seconds: float) -> float:

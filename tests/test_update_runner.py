@@ -39,6 +39,27 @@ class UpdateRunnerTest(unittest.TestCase):
             self.assertEqual(len(clamp_sources_for_web_request(sources)), WEB_REQUEST_MAX_SOURCES)
             self.assertEqual(clamp_seconds_for_web_request(45), WEB_REQUEST_MAX_SECONDS)
 
+    def test_default_web_request_includes_culture_sources(self):
+        sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
+        sources.extend(
+            [
+                {"name": "DN Kalendariet", "priority": "blue"},
+                {"name": "Visit Stockholm events", "priority": "blue"},
+                {"name": "Debaser Stockholm kalender", "priority": "blue"},
+                {"name": "Songkick Stockholm alla konserter", "priority": "orange"},
+                {"name": "Casa Latina Sverige", "priority": "blue"},
+            ]
+        )
+
+        with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):
+            selected_names = {source["name"] for source in clamp_sources_for_web_request(sources)}
+
+        self.assertIn("DN Kalendariet", selected_names)
+        self.assertIn("Visit Stockholm events", selected_names)
+        self.assertIn("Debaser Stockholm kalender", selected_names)
+        self.assertIn("Songkick Stockholm alla konserter", selected_names)
+        self.assertIn("Casa Latina Sverige", selected_names)
+
     def test_long_update_can_be_enabled_for_local_runs(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
         with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "true"}, clear=False):

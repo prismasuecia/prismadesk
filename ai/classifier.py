@@ -22,6 +22,12 @@ GENERIC_NON_STORY_TITLES = {
     "programacion del mes",
     "información general",
     "informacion general",
+    "kalender",
+    "music/show",
+    "premium experience",
+    "next 7 days",
+    "next 7 days ·",
+    "next 30 days",
 }
 
 HIGH_IMPACT_PRISMA_TERMS = {
@@ -989,7 +995,16 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.priority = "YELLOW"
         item.desk = "BOTH"
         item.action_recommendation = "RING_MAILA_NU"
-    elif item.category in {"culture", "events", "latino_culture", "latino_community", "youth_family"}:
+    elif item.category in {
+        "culture",
+        "events",
+        "latino_culture",
+        "latino_community",
+        "youth_family",
+        "concerts_all_stockholm",
+        "concert_venue",
+        "arena_stockholm",
+    }:
         item.priority = "BLUE"
         item.desk = "PRISMA"
         item.action_recommendation = "FÖLJ_UPP"

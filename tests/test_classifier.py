@@ -616,6 +616,40 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.raw_json.get("image_suggestions"))
         self.assertTrue(item.raw_json["matched_terms"]["latino_music"])
 
+    def test_concrete_stockholm_concert_is_blue_prisma_culture(self):
+        item = NewsItem(
+            source_name="Debaser Stockholm kalender",
+            source_url="https://www.debaser.se/kalender",
+            title="14 Jul 2026 Tue Culture Wars CONCERT Debaser Nova Rock",
+            summary="Konsert på Debaser i Stockholm.",
+            category="concert_venue",
+            url="https://www.debaser.se/kalender/culture-wars",
+            published_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "BLUE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+
+    def test_generic_concert_calendar_title_is_ignored(self):
+        item = NewsItem(
+            source_name="Debaser Stockholm kalender",
+            source_url="https://www.debaser.se/kalender",
+            title="Kalender",
+            summary="Debaser kalender",
+            category="concert_venue",
+            url="https://www.debaser.se/kalender",
+            published_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "GREY")
+        self.assertEqual(item.desk, "IGNORE")
+        self.assertEqual(item.action_recommendation, "IGNORERA")
+
     def test_already_published_must_not_keep_publish_today(self):
         item = NewsItem(
             source_name="Test",
