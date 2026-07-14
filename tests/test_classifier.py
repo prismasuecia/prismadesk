@@ -173,6 +173,7 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.accreditation_needed)
         self.assertIn(item.action_recommendation, {"SÖK_ACKREDITERING", "RING_MAILA_NU"})
         self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertIn("PRAJ", " ".join(item.raw_json.get("access_guidance", [])))
 
     def test_yesterday_date_only_press_meeting_is_past_event(self):
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)

@@ -401,6 +401,23 @@ def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
     lowered = text.lower()
     guidance: list[str] = []
 
+    if any(
+        term in lowered
+        for term in [
+            "ackreditering",
+            "pressackreditering",
+            "föranmälan",
+            "presslegitimation",
+            "pressträff",
+            "presskonferens",
+            "pressbriefing",
+            "media bjuds in",
+        ]
+    ):
+        guidance.append(
+            "Vid ackrediteringsformulär: kontrollera fält för PRAJ/press-ID, presskort/presslegitimation, byrå/uppdragsgivare (ZUMA Press) och publikation/redaktion (Prisma Suecia)."
+        )
+
     if any(term in lowered for term in ["partiledardebatt", "kulturhuset stadsteatern", "kulturhuset", "stadsteatern"]):
         guidance.extend(
             [
