@@ -216,6 +216,17 @@ zuma_terms:
   - medaljutdelning
   - målgång
   - internationellt lopp
+  - Stockholm Pride
+  - Pride
+  - Prideparaden
+  - Pride Parade
+  - Pride Park
+  - Pride House
+  - hbtq
+  - hbtqi
+  - hbtqia
+  - regnbågsflagga
+  - regnbågsflaggor
   - fotbolls-VM
   - fotbolls VM
   - VM
@@ -284,6 +295,12 @@ zuma_picture_event_terms:
   - ledarstab
   - spelarhotellet
   - partiledardebatt
+  - Prideparaden
+  - Pride Parade
+  - Pride Park
+  - Pride House
+  - pridefestival
+  - parad
   - frågestund
   - särskild debatt
   - möter journalister
@@ -352,6 +369,17 @@ zuma_picture_subject_terms:
   - fregatt
   - ubåt
   - partiledare
+  - Stockholm Pride
+  - Pride
+  - Prideparaden
+  - Pride Parade
+  - Pride Park
+  - Pride House
+  - hbtq
+  - hbtqi
+  - hbtqia
+  - regnbågsflagga
+  - regnbågsflaggor
   - Simona Mohamsson
   - Magdalena Andersson
   - Jimmie Åkesson
@@ -658,6 +686,16 @@ prisma_terms:
   - Colombia
   - Instituto Cervantes
   - latinoevent
+  - Stockholm Pride
+  - Pride
+  - Prideparaden
+  - hbtq
+  - hbtqi
+  - hbtqia
+  - regnbågsfamiljer
+  - mänskliga rättigheter
+  - diskriminering
+  - inkludering
   - konsert
   - Riksdagen
   - proposition

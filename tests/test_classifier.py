@@ -173,7 +173,6 @@ class ClassifierTest(unittest.TestCase):
         self.assertTrue(item.accreditation_needed)
         self.assertIn(item.action_recommendation, {"SÖK_ACKREDITERING", "RING_MAILA_NU"})
         self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
-        self.assertIn("PRAJ", " ".join(item.raw_json.get("access_guidance", [])))
 
     def test_yesterday_date_only_press_meeting_is_past_event(self):
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)
@@ -633,6 +632,53 @@ class ClassifierTest(unittest.TestCase):
         self.assertEqual(item.priority, "BLUE")
         self.assertEqual(item.desk, "PRISMA")
         self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+
+    def test_stockholm_pride_press_accreditation_is_prisma_and_zuma_alert(self):
+        item = NewsItem(
+            source_name="Stockholm Pride pressackreditering",
+            source_url="https://www.stockholmpride.org/press/",
+            title="Pressackreditering för Stockholm Pride är nu öppen",
+            summary=(
+                "Stockholm Pride öppnar pressackreditering inför Prideparaden, "
+                "Pride Park och Pride House i Stockholm. Fotografer behöver anmäla sig."
+            ),
+            category="pride_accreditation",
+            url="https://www.stockholmpride.org/pressackreditering-for-stockholm-pride-ar-nu-oppen/",
+            published_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertTrue(item.accreditation_needed)
+        self.assertEqual(item.action_recommendation, "SÖK_ACKREDITERING")
+        self.assertTrue(item.raw_json.get("image_suggestions"))
+        self.assertIn("Stockholm Prides", " ".join(item.raw_json.get("access_guidance", [])))
+
+    def test_stockholm_pride_parade_is_zuma_picture_and_prisma_community(self):
+        item = NewsItem(
+            source_name="Stockholm Pride nyheter",
+            source_url="https://www.stockholmpride.org/feed/",
+            title="Stockholm Prideparaden går genom centrala Stockholm",
+            summary=(
+                "Prideparaden med regnbågsflaggor, ekipage, publik och hbtqi-rörelse "
+                "samlar människor i centrala Stockholm."
+            ),
+            category="pride",
+            url="https://www.stockholmpride.org/prideparaden/",
+            published_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "BOTH")
+        self.assertTrue(item.physical_presence)
+        self.assertIn(item.action_recommendation, {"FÖLJ_UPP", "RING_MAILA_NU"})
+        self.assertIn("Pride", item.raw_json.get("why_it_matters", ""))
+        self.assertTrue(item.raw_json.get("image_suggestions"))
 
     def test_generic_concert_calendar_title_is_ignored(self):
         item = NewsItem(

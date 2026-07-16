@@ -353,6 +353,16 @@ def image_suggestions_for_item(
             ]
         )
 
+    if _contains_any(text, ["Stockholm Pride", "Prideparaden", "Pride Parade", "Pride Park", "Pride House", "hbtq", "hbtqi", "regnbågsflagga"]):
+        suggestions.extend(
+            [
+                "Prideparaden med publik, regnbågsflaggor, ekipage och tydliga Stockholmsmiljöer.",
+                "Pride Park, Pride House eller köer/entréer med skyltning, flaggor och festivalmiljö.",
+                "Breda gatubilder från centrala Stockholm som visar omfattning, publik och färg utan att peka ut utsatta personer.",
+                "Detaljer på regnbågsflaggor, plakat, scenmiljö eller polis/arrangörsnärvaro vid avspärrningar.",
+            ]
+        )
+
     if _contains_any(text, ["Veterandagen", "veterandag", "Sjöhistoriska", "kransnedläggning", "militär ceremoni"]):
         suggestions.extend(
             [
@@ -415,7 +425,15 @@ def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
         ]
     ):
         guidance.append(
-            "Vid ackrediteringsformulär: kontrollera fält för PRAJ/press-ID, presskort/presslegitimation, byrå/uppdragsgivare (ZUMA Press) och publikation/redaktion (Prisma Suecia)."
+            "Vid ackrediteringsformulär: kontrollera presskort/presslegitimation, byrå/uppdragsgivare (ZUMA Press), publikation/redaktion (Prisma Suecia), fotofunktion och eventuell deadline."
+        )
+
+    if any(term in lowered for term in ["stockholm pride", "prideparaden", "pride parade", "pride park", "pride house"]):
+        guidance.extend(
+            [
+                "Kontakta Stockholm Prides presskontakt om pressackreditering, fotopositioner, paradsträckning, Pride Park-regler och möjlighet till bilder före/efter paraden.",
+                "Kontrollera även Polisen och Stockholms stad för avspärrningar, säkerhetszoner, drönarregler och praktiska fotopositioner längs rutten.",
+            ]
         )
 
     if any(term in lowered for term in ["partiledardebatt", "kulturhuset stadsteatern", "kulturhuset", "stadsteatern"]):
@@ -551,6 +569,8 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "concerts_all_stockholm",
         "concert_venue",
         "arena_stockholm",
+        "pride",
+        "pride_accreditation",
     })
 
     has_press_event = bool(
@@ -766,9 +786,28 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             ["varningssystem", "SE Alert", "mobilvarning", "civilbefolkningen", "civilt försvar", "civil beredskap", "krisberedskap"],
         )
     )
+    stockholm_pride_picture_event = bool(
+        (stockholm_terms or "stockholm" in text.lower() or item.category in {"pride", "pride_accreditation"})
+        and _contains_any(
+            text,
+            [
+                "Stockholm Pride",
+                "Prideparaden",
+                "Pride Parade",
+                "Pride Park",
+                "Pride House",
+                "pridefestival",
+                "regnbågsflagga",
+                "regnbågsflaggor",
+                "hbtq",
+                "hbtqi",
+                "hbtqia",
+            ],
+        )
+    )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
-    if item.category in {"latino_culture", "latino_community", "culture", "youth_family"}:
+    if item.category in {"latino_culture", "latino_community", "culture", "youth_family", "pride", "pride_accreditation"}:
         prisma_score += 3
     if item.category in {"government", "prime_minister", "nato", "royal", "defence"}:
         zuma_score += 3
@@ -833,6 +872,15 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.action_recommendation = "RING_MAILA_NU"
         item.raw_json["why_it_matters"] = (
             "Pressträff i Stockholm om civil varning eller beredskap: stark Prisma-story och konkret ZUMA-bildläge."
+        )
+    elif stockholm_pride_picture_event:
+        item.priority = "ORANGE"
+        item.desk = "BOTH"
+        item.physical_presence = True
+        item.accreditation_needed = True if item.category == "pride_accreditation" else item.accreditation_needed
+        item.action_recommendation = "SÖK_ACKREDITERING" if item.accreditation_needed else "FÖLJ_UPP"
+        item.raw_json["why_it_matters"] = (
+            "Stockholm Pride är starkt Prisma-communityinnehåll och tydligt ZUMA-bildläge: parad, publik, flaggor, stadsmiljö och mänskliga rättigheter."
         )
     elif stockholm_ceremony_picture_event:
         item.priority = "RED"
@@ -1021,6 +1069,8 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "concerts_all_stockholm",
         "concert_venue",
         "arena_stockholm",
+        "pride",
+        "pride_accreditation",
     }:
         item.priority = "BLUE"
         item.desk = "PRISMA"

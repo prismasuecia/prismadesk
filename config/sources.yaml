@@ -214,6 +214,21 @@ sources:
     type: web
     category: events
     priority: blue
+  - name: Stockholm Pride nyheter
+    url: https://www.stockholmpride.org/feed/
+    type: rss
+    category: pride
+    priority: orange
+  - name: Stockholm Pride pressackreditering
+    url: https://www.stockholmpride.org/press/
+    type: web
+    category: pride_accreditation
+    priority: orange
+  - name: Stockholm Pride startsida
+    url: https://www.stockholmpride.org/
+    type: web
+    category: pride
+    priority: blue
   - name: Songkick Stockholm alla konserter
     url: https://www.songkick.com/metro-areas/32252-sweden-stockholm
     type: web
