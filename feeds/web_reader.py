@@ -59,6 +59,7 @@ GENERIC_TITLES = {
 
 GOOD_URL_PARTS = (
     "/pressmeddelanden/",
+    "/ud-avrader/",
     "/nyheter/",
     "/aktuellt/",
     "/kalender",
@@ -194,6 +195,51 @@ def _read_regeringen_source(source: dict, soup: BeautifulSoup, timeout: int) -> 
     return items
 
 
+def _read_regeringen_ud_advisory_source(source: dict, soup: BeautifulSoup, timeout: int) -> list[NewsItem]:
+    items: list[NewsItem] = []
+    seen: set[str] = set()
+    detail_timeout = max(1, min(timeout, int(os.getenv("PRISMA_REGERINGEN_DETAIL_TIMEOUT", "3"))))
+    base_url = source["url"].rstrip("/") + "/"
+
+    for link in soup.find_all("a", href=True):
+        href = urljoin(source["url"], link["href"])
+        normalized_href = href.rstrip("/") + "/"
+        if "/ud-avrader/" not in href or normalized_href == base_url or href in seen:
+            continue
+
+        title = _clean(link.get_text(" ", strip=True))
+        if len(title) < 8 or "avrådan" not in title.lower():
+            continue
+
+        container = link.find_parent("li") or link.find_parent("div") or link.find_parent("section")
+        context = _clean(container.get_text(" ", strip=True)) if container else title
+        date_match = re.search(r"Publicerad\s+([^·]+)", context)
+        detail_text, detail_date = _read_regeringen_detail(href, detail_timeout)
+        full_context = detail_text or context
+
+        items.append(
+            NewsItem(
+                source_name=source["name"],
+                source_url=source["url"],
+                title=title,
+                summary=full_context[:800],
+                content=full_context,
+                published_at=detail_date or (date_match.group(1).strip() if date_match else None),
+                url=href,
+                category=source.get("category", ""),
+                raw_json={
+                    "source_type": "web_regeringen_ud_advisory",
+                    "detail_fetched": bool(detail_text),
+                },
+            )
+        )
+        seen.add(href)
+        if len(items) >= 30:
+            break
+
+    return items
+
+
 def read_web_source(source: dict, timeout: Optional[int] = None) -> list[NewsItem]:
     timeout = timeout or int(os.getenv("PRISMA_WEB_TIMEOUT", "8"))
     response = requests.get(source["url"], headers=HEADERS, timeout=timeout)
@@ -202,6 +248,8 @@ def read_web_source(source: dict, timeout: Optional[int] = None) -> list[NewsIte
         response.encoding = response.apparent_encoding or "utf-8"
     soup = BeautifulSoup(response.text, "html.parser")
 
+    if "regeringen.se" in source["url"] and "/ud-avrader" in source["url"]:
+        return _read_regeringen_ud_advisory_source(source, soup, timeout)
     if "regeringen.se" in source["url"]:
         return _read_regeringen_source(source, soup, timeout)
 

@@ -14,6 +14,11 @@ sources:
     type: web
     category: government_calendar
     priority: red
+  - name: UD avrådan
+    url: https://www.regeringen.se/ud-avrader/
+    type: web
+    category: ud_travel_advice
+    priority: orange
   - name: Regeringen statsministern
     url: https://www.regeringen.se/Filter/RssFeed?filterType=Taxonomy&filterByType=FilterablePageBase&preFilteredCategories=1284%2C1285%2C1286%2C1287%2C1288%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297%2C2425&rootPageReference=0&filteredContentCategories=1334&filteredPoliticalLevelCategories=&filteredPoliticalAreaCategories=&filteredPublisherCategories=2605
     type: rss
@@ -254,6 +259,21 @@ sources:
     type: rss
     category: search_culture_latino
     priority: blue
+  - name: Prisma webbsök UD Latinamerika
+    url: https://news.google.com/rss/search?q=UD%20avråder%20Latinamerika%20Bolivia%20Chile%20Peru%20Colombia%20Ecuador%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_ud_latam
+    priority: orange
+  - name: Prisma webbsök partiförslag migration integration
+    url: https://news.google.com/rss/search?q=Sverigedemokraterna%20Moderaterna%20Socialdemokraterna%20partif%C3%B6rslag%20migration%20integration%20skola%20sl%C3%B6jf%C3%B6rbud%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_party_policy
+    priority: orange
+  - name: Prisma webbsök SD slöjförbud
+    url: https://news.google.com/rss/search?q=Sverigedemokraterna%20sl%C3%B6jf%C3%B6rbud%20skola%20religion%20when%3A30d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_party_policy
+    priority: orange
   - name: Songkick Stockholm alla konserter
     url: https://www.songkick.com/metro-areas/32252-sweden-stockholm
     type: web

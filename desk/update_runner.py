@@ -19,7 +19,7 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 WEB_REQUEST_MAX_SECONDS = 14.0
-WEB_REQUEST_MAX_SOURCES = 22
+WEB_REQUEST_MAX_SOURCES = 25
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -29,13 +29,15 @@ SOURCE_PRIORITY_ORDER = {
 }
 DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Regeringen pressmeddelanden web",
+    "UD avrådan",
     "Via TT",
+    "Prisma webbsök UD Latinamerika",
+    "Prisma webbsök partiförslag migration integration",
+    "Prisma webbsök SD slöjförbud",
     "DN Kalendariet",
     "Visit Stockholm events",
-    "Visit Stockholm startsida",
     "Stockholm Pride nyheter",
     "Stockholm Pride pressackreditering",
-    "Stockholm Pride startsida",
     "Prisma webbsök migration",
     "Prisma webbsök arbete ekonomi",
     "Prisma webbsök lagar samhälle",
@@ -49,7 +51,8 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Stockholms stad Via TT",
     "Polisen press Stockholm",
     "Riksdagen kalender kammaren",
-    "Kungahuset kalender",
+    "Riksdagen betänkanden förslag",
+    "Riksdagen propositioner",
     "Försvarsmakten Mynewsdesk event",
     "Regeringen pressmeddelanden",
 ]

@@ -1229,6 +1229,68 @@ class ClassifierTest(unittest.TestCase):
             self.assertEqual(item.desk, "IGNORE", title)
             self.assertEqual(item.action_recommendation, "IGNORERA", title)
 
+    def test_ud_bolivia_chapare_advisory_is_prisma_publish_today(self):
+        item = NewsItem(
+            source_name="UD avrådan",
+            source_url="https://www.regeringen.se/ud-avrader/",
+            title="Bolivia - avrådan",
+            summary=(
+                "Publicerad 16 juli 2026. Utrikesdepartementet avråder från alla resor "
+                "till provinsen Chapare. Beslutet gäller tills vidare."
+            ),
+            category="ud_travel_advice",
+            url="https://www.regeringen.se/ud-avrader/bolivia---avradan/",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertFalse(item.physical_presence)
+        self.assertEqual(item.accreditation_needed, False)
+        self.assertEqual(item.action_recommendation, "PUBLICERA_IDAG")
+        self.assertIn("UD-avrådan", item.raw_json.get("why_it_matters", ""))
+
+    def test_old_ud_advisory_is_not_publish_today(self):
+        item = NewsItem(
+            source_name="UD avrådan",
+            source_url="https://www.regeringen.se/ud-avrader/",
+            title="Colombia - avrådan",
+            summary="Utrikesdepartementet avråder från icke nödvändiga resor till delar av Colombia.",
+            category="ud_travel_advice",
+            url="https://www.regeringen.se/ud-avrader/colombia-avradan/",
+            published_at="12 juli 2024",
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "YELLOW")
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertFalse(item.physical_presence)
+
+    def test_party_policy_headscarf_ban_is_prisma_signal(self):
+        item = NewsItem(
+            source_name="Prisma webbsök SD slöjförbud",
+            source_url="https://news.google.com/rss/search",
+            title="Sverigedemokraterna vill införa slöjförbud i skolan",
+            summary=(
+                "Partiet föreslår nya regler i skolan som gäller religiösa symboler "
+                "och kan påverka barnfamiljer och religionsfrihet."
+            ),
+            category="search_party_policy",
+            url="https://example.test/slojforbud",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertFalse(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertIn("Partipolitiskt förslag", item.raw_json.get("why_it_matters", ""))
+
 
 if __name__ == "__main__":
     unittest.main()

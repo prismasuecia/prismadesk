@@ -696,6 +696,52 @@ prisma_terms:
   - mänskliga rättigheter
   - diskriminering
   - inkludering
+  - UD avråder
+  - Utrikesdepartementet avråder
+  - reseavrådan
+  - avrådan
+  - reseinformation
+  - UD Resklar
+  - Svensklistan
+  - Latinamerika
+  - Bolivia
+  - Chapare
+  - Chile
+  - Peru
+  - Colombia
+  - Ecuador
+  - Venezuela
+  - Argentina
+  - Brasilien
+  - Mexiko
+  - Nicaragua
+  - Honduras
+  - Guatemala
+  - El Salvador
+  - Kuba
+  - dominikanska republiken
+  - riksdagsparti
+  - partiprogram
+  - partiförslag
+  - politiskt förslag
+  - talesperson
+  - migrationspolitisk talesperson
+  - skolpolitisk talesperson
+  - rättspolitisk talesperson
+  - Sverigedemokraterna
+  - Socialdemokraterna
+  - Moderaterna
+  - Liberalerna
+  - Kristdemokraterna
+  - Centerpartiet
+  - Miljöpartiet
+  - Vänsterpartiet
+  - slöjförbud
+  - slöja
+  - religiösa symboler
+  - religionsfrihet
+  - skolan
+  - förskolan
   - konsert
   - Riksdagen
   - proposition
@@ -718,6 +764,13 @@ prisma_consequence_markers:
   - börjar gälla
   - får rätt till
   - måste
+  - avråder från
+  - gäller tills vidare
+  - vill införa
+  - föreslår
+  - kräver
+  - går till val på
+  - partiet vill
 zuma_latino_music_genre_terms:
   - reggaeton
   - latin trap

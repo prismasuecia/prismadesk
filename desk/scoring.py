@@ -106,6 +106,23 @@ def parse_item_datetime(value: str | None) -> datetime | None:
             return datetime(year, month, day, hour, minute, tzinfo=datetime.now().astimezone().tzinfo)
         except ValueError:
             continue
+    swedish_match = re.search(
+        r"\b(\d{1,2})\s+("
+        + "|".join(SWEDISH_MONTHS.keys())
+        + r")\s+(\d{4})(?:\s+(?:kl\.?\s*)?(\d{1,2})[:.](\d{2}))?\b",
+        value,
+        flags=re.IGNORECASE,
+    )
+    if swedish_match:
+        try:
+            day = int(swedish_match.group(1))
+            month = SWEDISH_MONTHS[swedish_match.group(2).lower()]
+            year = int(swedish_match.group(3))
+            hour = int(swedish_match.group(4) or 12)
+            minute = int(swedish_match.group(5) or 0)
+            return datetime(year, month, day, hour, minute, tzinfo=datetime.now().astimezone().tzinfo)
+        except ValueError:
+            pass
     for parser in (
         lambda raw: datetime.fromisoformat(raw.replace("Z", "+00:00")),
         parsedate_to_datetime,
@@ -334,6 +351,14 @@ def apply_temporal_guardrails(item: NewsItem) -> NewsItem:
         item.action_recommendation = "FÖLJ_UPP"
         item.raw_json["why_it_matters"] = (
             "Äldre fynd. Publicera inte som nyhet utan ny vinkel eller uppdatering."
+        )
+    if status == "OLD" and item.category in {"ud_travel_advice", "latam_travel_advice"}:
+        if item.priority in {"RED", "ORANGE"}:
+            item.priority = "YELLOW"
+        item.action_recommendation = "FÖLJ_UPP"
+        item.physical_presence = False
+        item.raw_json["why_it_matters"] = (
+            "Äldre UD-avrådan. Kontrollera om läget har uppdaterats innan den behandlas som ny Prisma-story."
         )
 
     if item.action_recommendation in {"ÅK_DIT", "SÖK_ACKREDITERING"} and status in {"PAST_EVENT", "OLD"}:

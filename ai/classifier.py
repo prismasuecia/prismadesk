@@ -36,6 +36,13 @@ PRISMA_SEARCH_CATEGORIES = {
     "search_law_society",
     "search_daily_life",
     "search_culture_latino",
+    "search_ud_latam",
+    "search_party_policy",
+}
+
+UD_TRAVEL_CATEGORIES = {
+    "ud_travel_advice",
+    "latam_travel_advice",
 }
 
 HIGH_IMPACT_PRISMA_TERMS = {
@@ -121,7 +128,111 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "personuppgifter",
     "rättssäkerhet",
     "brottsbekämpning",
+    "UD avråder",
+    "Utrikesdepartementet avråder",
+    "reseavrådan",
+    "avrådan",
+    "UD Resklar",
+    "Svensklistan",
+    "Latinamerika",
+    "Bolivia",
+    "Chapare",
+    "Chile",
+    "Peru",
+    "Colombia",
+    "Ecuador",
+    "Venezuela",
+    "Argentina",
+    "Brasilien",
+    "Mexiko",
+    "Nicaragua",
+    "Honduras",
+    "Guatemala",
+    "El Salvador",
+    "Kuba",
+    "partiprogram",
+    "partiförslag",
+    "politiskt förslag",
+    "riksdagsparti",
+    "talesperson",
+    "migrationspolitisk talesperson",
+    "skolpolitisk talesperson",
+    "rättspolitisk talesperson",
+    "Sverigedemokraterna",
+    "Socialdemokraterna",
+    "Moderaterna",
+    "Liberalerna",
+    "Kristdemokraterna",
+    "Centerpartiet",
+    "Miljöpartiet",
+    "Vänsterpartiet",
+    "slöjförbud",
+    "slöja",
+    "religionsfrihet",
+    "skolan",
+    "förskolan",
 }
+
+LATIN_AMERICA_TERMS = [
+    "Latinamerika",
+    "Bolivia",
+    "Chapare",
+    "Chile",
+    "Peru",
+    "Colombia",
+    "Ecuador",
+    "Venezuela",
+    "Argentina",
+    "Brasilien",
+    "Mexiko",
+    "Nicaragua",
+    "Honduras",
+    "Guatemala",
+    "El Salvador",
+    "Kuba",
+    "Dominikanska republiken",
+]
+
+UD_TRAVEL_TERMS = [
+    "UD avråder",
+    "Utrikesdepartementet avråder",
+    "avråder från alla resor",
+    "avråder från icke nödvändiga resor",
+    "reseavrådan",
+    "UD Resklar",
+    "Svensklistan",
+]
+
+PARTY_POLICY_TERMS = [
+    "partiprogram",
+    "partiförslag",
+    "politiskt förslag",
+    "vill införa",
+    "föreslår",
+    "kräver",
+    "går till val på",
+    "partiet vill",
+    "slöjförbud",
+    "slöja",
+    "religiösa symboler",
+    "religionsfrihet",
+]
+
+PARTY_ACTOR_TERMS = [
+    "Sverigedemokraterna",
+    "Socialdemokraterna",
+    "Moderaterna",
+    "Liberalerna",
+    "Kristdemokraterna",
+    "Centerpartiet",
+    "Miljöpartiet",
+    "Vänsterpartiet",
+    "partiledare",
+    "talesperson",
+    "migrationspolitisk talesperson",
+    "skolpolitisk talesperson",
+    "rättspolitisk talesperson",
+]
 
 COMMON_SWEDISH_ARTIST_OR_NAME_WORDS = {
     "Benjamin",
@@ -558,6 +669,19 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     stockholm_terms = _contains_any(text, rules.get("stockholm_priority_terms", []))
     outside_stockholm_terms = _contains_any(text, rules.get("outside_stockholm_terms", []))
     latino_music_score, latino_music_matches = score_latino_music_event(text, rules)
+    ud_travel_terms = _contains_any(text, UD_TRAVEL_TERMS)
+    latam_terms = _contains_any(text, LATIN_AMERICA_TERMS)
+    party_policy_terms = _contains_any(text, PARTY_POLICY_TERMS)
+    party_actor_terms = _contains_any(text, PARTY_ACTOR_TERMS)
+    is_ud_latam_advisory = bool(
+        (item.category in UD_TRAVEL_CATEGORIES or ud_travel_terms)
+        and latam_terms
+    )
+    is_party_policy_signal = bool(
+        (item.category in {"politics", "search_party_policy"} or party_actor_terms)
+        and party_policy_terms
+        and (specific_prisma_terms or high_impact_prisma_terms or item.category == "search_party_policy")
+    )
     is_media = item.category in {"media_breaking", "media_national", "media_stockholm", "media_economy"}
     is_prisma_topic = bool(specific_prisma_terms or item.category in {
         "stockholm_city",
@@ -579,6 +703,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "arena_stockholm",
         "pride",
         "pride_accreditation",
+        *UD_TRAVEL_CATEGORIES,
         *PRISMA_SEARCH_CATEGORIES,
     })
 
@@ -830,7 +955,24 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if latino_music_score >= 8:
+    if is_ud_latam_advisory:
+        item.priority = "ORANGE"
+        item.desk = "PRISMA"
+        item.physical_presence = False
+        item.accreditation_needed = False if item.accreditation_needed is None else item.accreditation_needed
+        item.action_recommendation = "PUBLICERA_IDAG" if item.category in UD_TRAVEL_CATEGORIES else "FÖLJ_UPP"
+        item.raw_json["why_it_matters"] = (
+            "UD-avrådan eller reseinformation för Latinamerika. Detta är direkt relevant för Prisma Suecias läsare med familj, resor eller anknytning till regionen."
+        )
+    elif is_party_policy_signal:
+        item.priority = "ORANGE"
+        item.desk = "PRISMA"
+        item.physical_presence = False
+        item.action_recommendation = "FÖLJ_UPP" if item.category in PRISMA_SEARCH_CATEGORIES else "PUBLICERA_IDAG"
+        item.raw_json["why_it_matters"] = (
+            "Partipolitiskt förslag från riksdagsparti eller framträdande företrädare som kan påverka migration, skola, religion, rättigheter eller vardag. Kontrollera primärkälla och exakt beslutsläge."
+        )
+    elif latino_music_score >= 8:
         item.priority = "ORANGE"
         item.desk = "BOTH"
         item.physical_presence = True
@@ -1103,9 +1245,10 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     if item.category in PRISMA_SEARCH_CATEGORIES and item.desk in {"PRISMA", "BOTH"}:
         if item.action_recommendation == "PUBLICERA_IDAG":
             item.action_recommendation = "FÖLJ_UPP"
-        item.raw_json["why_it_matters"] = (
-            "Webbsök hittade en möjlig Prisma Suecia-story. Kontrollera primärkälla, datum och om ämnet redan finns på Prisma innan publicering."
-        )
+        if not str(item.raw_json.get("why_it_matters", "")).startswith("Partipolitiskt förslag"):
+            item.raw_json["why_it_matters"] = (
+                "Webbsök hittade en möjlig Prisma Suecia-story. Kontrollera primärkälla, datum och om ämnet redan finns på Prisma innan publicering."
+            )
 
     if normalized_title in GENERIC_NON_STORY_TITLES:
         item.priority = "GREY"
@@ -1238,6 +1381,8 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             + latino_music_matches.get("significance", [])
             + latino_music_matches.get("artist_pattern", [])
         ),
+        "ud_travel": ud_travel_terms + latam_terms,
+        "party_policy": party_policy_terms + party_actor_terms,
     }
     existing_why = item.raw_json.get("why_it_matters")
     item.raw_json.update(

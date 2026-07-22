@@ -52,6 +52,10 @@ class UpdateRunnerTest(unittest.TestCase):
                 {"name": "Stockholm Pride pressackreditering", "priority": "orange"},
                 {"name": "Prisma webbsök migration", "priority": "orange"},
                 {"name": "Prisma webbsök lagar samhälle", "priority": "orange"},
+                {"name": "UD avrådan", "priority": "orange"},
+                {"name": "Prisma webbsök UD Latinamerika", "priority": "orange"},
+                {"name": "Prisma webbsök partiförslag migration integration", "priority": "orange"},
+                {"name": "Prisma webbsök SD slöjförbud", "priority": "orange"},
             ]
         )
 
@@ -67,6 +71,10 @@ class UpdateRunnerTest(unittest.TestCase):
         self.assertIn("Stockholm Pride pressackreditering", selected_names)
         self.assertIn("Prisma webbsök migration", selected_names)
         self.assertIn("Prisma webbsök lagar samhälle", selected_names)
+        self.assertIn("UD avrådan", selected_names)
+        self.assertIn("Prisma webbsök UD Latinamerika", selected_names)
+        self.assertIn("Prisma webbsök partiförslag migration integration", selected_names)
+        self.assertIn("Prisma webbsök SD slöjförbud", selected_names)
 
     def test_long_update_can_be_enabled_for_local_runs(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
