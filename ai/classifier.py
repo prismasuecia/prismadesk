@@ -30,6 +30,14 @@ GENERIC_NON_STORY_TITLES = {
     "next 30 days",
 }
 
+PRISMA_SEARCH_CATEGORIES = {
+    "search_migration",
+    "search_work_economy",
+    "search_law_society",
+    "search_daily_life",
+    "search_culture_latino",
+}
+
 HIGH_IMPACT_PRISMA_TERMS = {
     "socialförsäkring",
     "socialförsäkringen",
@@ -571,6 +579,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "arena_stockholm",
         "pride",
         "pride_accreditation",
+        *PRISMA_SEARCH_CATEGORIES,
     })
 
     has_press_event = bool(
@@ -807,7 +816,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
-    if item.category in {"latino_culture", "latino_community", "culture", "youth_family", "pride", "pride_accreditation"}:
+    if item.category in {"latino_culture", "latino_community", "culture", "youth_family", "pride", "pride_accreditation", *PRISMA_SEARCH_CATEGORIES}:
         prisma_score += 3
     if item.category in {"government", "prime_minister", "nato", "royal", "defence"}:
         zuma_score += 3
@@ -1075,6 +1084,13 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.priority = "BLUE"
         item.desk = "PRISMA"
         item.action_recommendation = "FÖLJ_UPP"
+    elif item.category in PRISMA_SEARCH_CATEGORIES:
+        item.priority = "YELLOW"
+        item.desk = "PRISMA"
+        item.action_recommendation = "FÖLJ_UPP"
+        item.raw_json["why_it_matters"] = (
+            "Webbsök hittade en möjlig Prisma Suecia-story. Kontrollera primärkälla, datum och om ämnet redan finns på Prisma innan publicering."
+        )
     elif item.category in {"transport", "rail", "aviation", "transport_infrastructure", "stockholm_city"}:
         item.priority = "GREEN"
         item.desk = "PRISMA"
@@ -1083,6 +1099,13 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.priority = "GREY"
         item.desk = "IGNORE"
         item.action_recommendation = "IGNORERA"
+
+    if item.category in PRISMA_SEARCH_CATEGORIES and item.desk in {"PRISMA", "BOTH"}:
+        if item.action_recommendation == "PUBLICERA_IDAG":
+            item.action_recommendation = "FÖLJ_UPP"
+        item.raw_json["why_it_matters"] = (
+            "Webbsök hittade en möjlig Prisma Suecia-story. Kontrollera primärkälla, datum och om ämnet redan finns på Prisma innan publicering."
+        )
 
     if normalized_title in GENERIC_NON_STORY_TITLES:
         item.priority = "GREY"

@@ -680,6 +680,27 @@ class ClassifierTest(unittest.TestCase):
         self.assertIn("Pride", item.raw_json.get("why_it_matters", ""))
         self.assertTrue(item.raw_json.get("image_suggestions"))
 
+    def test_prisma_web_search_result_is_manual_prisma_signal(self):
+        item = NewsItem(
+            source_name="Prisma webbsök vardag myndigheter",
+            source_url="https://news.google.com/rss/search?q=example",
+            title="Nya regler för barnbidrag och bostadsbidrag kan börja gälla i Sverige",
+            summary=(
+                "Google News-sökning hittade en möjlig nyhet om Försäkringskassan, "
+                "barnbidrag och bostadsbidrag. Kontrollera primärkälla innan publicering."
+            ),
+            category="search_daily_life",
+            url="https://example.test/nyhet",
+            published_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertIn(item.priority, {"YELLOW", "ORANGE"})
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertIn("Webbsök", item.raw_json.get("why_it_matters", ""))
+
     def test_generic_concert_calendar_title_is_ignored(self):
         item = NewsItem(
             source_name="Debaser Stockholm kalender",

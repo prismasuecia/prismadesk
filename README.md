@@ -10,6 +10,7 @@ Systemet kör ingenting i bakgrunden. Det hämtar, analyserar och sparar fynd f�
 - Källor i `config/sources.yaml`.
 - RSS används där säkra flöden finns: Regeringen, Via TT, Stockholms stad via TT, Trafikverket, Riksdagen, Försvarsmakten/Mynewsdesk, MCF/Mynewsdesk och Polisen Stockholm.
 - Stora mediehus ligger som `media_signal`-källor via RSS och ska ses som signaler, inte primärkällor.
+- Prisma-profilerade webbsök via Google News RSS finns som manuella signalkällor för migration, arbete/ekonomi, lagar, myndighetsvardag och latino/kultur. De ska alltid kontrolleras mot primärkälla innan publicering.
 - Riksdagens kammarkalender läses som iCalendar från `https://data.riksdagen.se/kalender/?org=kamm&utformat=icalendar`.
 - Regelbaserad klassificering i `ai/classifier.py`.
 - SQLite-lagring i `data/prisma_desk.sqlite3`.

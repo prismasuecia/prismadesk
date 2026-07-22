@@ -229,6 +229,31 @@ sources:
     type: web
     category: pride
     priority: blue
+  - name: Prisma webbsök migration
+    url: https://news.google.com/rss/search?q=Sverige%20Migrationsverket%20uppeh%C3%A5llstillst%C3%A5nd%20medborgarskap%20when%3A7d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_migration
+    priority: orange
+  - name: Prisma webbsök arbete ekonomi
+    url: https://news.google.com/rss/search?q=Sverige%20arbetskraftsinvandring%20arbetstillst%C3%A5nd%20l%C3%B6negolv%20arbetsmarknad%20when%3A7d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_work_economy
+    priority: orange
+  - name: Prisma webbsök lagar samhälle
+    url: https://news.google.com/rss/search?q=Sverige%20nya%20lagar%20riksdagen%20tr%C3%A4der%20i%20kraft%20g%C3%A4ller%20fr%C3%A5n%20when%3A7d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_law_society
+    priority: orange
+  - name: Prisma webbsök vardag myndigheter
+    url: https://news.google.com/rss/search?q=Sverige%20barnbidrag%20bostadsbidrag%20F%C3%B6rs%C3%A4kringskassan%20Skatteverket%20CSN%201177%20when%3A7d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_daily_life
+    priority: orange
+  - name: Prisma webbsök kultur latino Stockholm
+    url: https://news.google.com/rss/search?q=Stockholm%20latino%20latinamerikansk%20spanska%20kultur%20evenemang%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_culture_latino
+    priority: blue
   - name: Songkick Stockholm alla konserter
     url: https://www.songkick.com/metro-areas/32252-sweden-stockholm
     type: web
