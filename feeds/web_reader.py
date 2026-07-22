@@ -72,6 +72,28 @@ GOOD_URL_PARTS = (
     "via.tt.se/pressmeddelande",
 )
 
+UD_RELEVANT_COUNTRY_TERMS = {
+    "argentina",
+    "bolivia",
+    "brasilien",
+    "chile",
+    "colombia",
+    "costa rica",
+    "ecuador",
+    "el salvador",
+    "guatemala",
+    "honduras",
+    "kuba",
+    "mexiko",
+    "nicaragua",
+    "panama",
+    "paraguay",
+    "peru",
+    "uruguay",
+    "venezuela",
+    "dominikan",
+}
+
 
 def _clean(text: str) -> str:
     return " ".join(text.split())
@@ -155,7 +177,7 @@ def _should_fetch_regeringen_detail(title: str, context: str, already_found: int
 def _read_regeringen_source(source: dict, soup: BeautifulSoup, timeout: int) -> list[NewsItem]:
     items: list[NewsItem] = []
     seen: set[str] = set()
-    detail_timeout = max(1, min(timeout, int(os.getenv("PRISMA_REGERINGEN_DETAIL_TIMEOUT", "3"))))
+    detail_timeout = max(1, min(timeout, int(os.getenv("PRISMA_REGERINGEN_DETAIL_TIMEOUT", "2"))))
 
     for link in soup.find_all("a", href=True):
         href = urljoin(source["url"], link["href"])
@@ -198,7 +220,7 @@ def _read_regeringen_source(source: dict, soup: BeautifulSoup, timeout: int) -> 
 def _read_regeringen_ud_advisory_source(source: dict, soup: BeautifulSoup, timeout: int) -> list[NewsItem]:
     items: list[NewsItem] = []
     seen: set[str] = set()
-    detail_timeout = max(1, min(timeout, int(os.getenv("PRISMA_REGERINGEN_DETAIL_TIMEOUT", "3"))))
+    detail_timeout = max(1, min(timeout, int(os.getenv("PRISMA_REGERINGEN_DETAIL_TIMEOUT", "2"))))
     base_url = source["url"].rstrip("/") + "/"
 
     for link in soup.find_all("a", href=True):
@@ -213,6 +235,10 @@ def _read_regeringen_ud_advisory_source(source: dict, soup: BeautifulSoup, timeo
 
         container = link.find_parent("li") or link.find_parent("div") or link.find_parent("section")
         context = _clean(container.get_text(" ", strip=True)) if container else title
+        country_context = f"{title} {href} {context}".lower()
+        if not any(term in country_context for term in UD_RELEVANT_COUNTRY_TERMS):
+            continue
+
         date_match = re.search(r"Publicerad\s+([^·]+)", context)
         detail_text, detail_date = _read_regeringen_detail(href, detail_timeout)
         full_context = detail_text or context
@@ -234,7 +260,7 @@ def _read_regeringen_ud_advisory_source(source: dict, soup: BeautifulSoup, timeo
             )
         )
         seen.add(href)
-        if len(items) >= 30:
+        if len(items) >= 20:
             break
 
     return items

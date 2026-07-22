@@ -19,7 +19,7 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 WEB_REQUEST_MAX_SECONDS = 14.0
-WEB_REQUEST_MAX_SOURCES = 25
+WEB_REQUEST_MAX_SOURCES = 18
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -47,14 +47,6 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Debaser Stockholm kalender",
     "Casa Latina Sverige",
     "Instituto Cervantes Stockholm",
-    "Stockholms stad aktuellt",
-    "Stockholms stad Via TT",
-    "Polisen press Stockholm",
-    "Riksdagen kalender kammaren",
-    "Riksdagen betänkanden förslag",
-    "Riksdagen propositioner",
-    "Försvarsmakten Mynewsdesk event",
-    "Regeringen pressmeddelanden",
 ]
 
 
