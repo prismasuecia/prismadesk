@@ -57,6 +57,8 @@ def load_yaml(path: Path) -> dict:
 
 def load_sources() -> list[dict]:
     sources = load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
+    if os.getenv("PRISMA_ENABLE_SOURCE_LIMIT", "false").lower() != "true":
+        return sources
     limit = int(os.getenv("PRISMA_SOURCE_LIMIT", "0") or "0")
     if limit > 0:
         indexed_sources = list(enumerate(sources))
@@ -139,7 +141,7 @@ def run_update() -> dict:
     prisma_articles = []
     all_sources = load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
     configured_sources = len(all_sources)
-    configured_selected_sources = load_sources()
+    configured_selected_sources = all_sources
     selected_sources = clamp_sources_for_web_request(configured_selected_sources)
     sources_attempted = 0
     sources_failed = 0

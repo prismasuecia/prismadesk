@@ -14,7 +14,7 @@ from desk import database
 from desk.live_status import live_temporal_status
 from desk.models import NewsItem
 from desk.scoring import apply_temporal_guardrails, calculate_score, hours_until_deadline
-from desk.update_runner import run_update
+from desk.update_runner import clamp_sources_for_web_request, load_sources, run_update
 
 
 load_dotenv()
@@ -408,10 +408,25 @@ def healthz():
         latest_run = normalize_latest_run(database.latest_run())
         item_count = len(database.latest_items(limit=5, include_dismissed=True))
         status = latest_run["status"] if latest_run else "NO_RUNS"
-        return f"ok latest_run={status} sample_items={item_count}\n", 200
+        selected_sources = [source.get("name", "") for source in clamp_sources_for_web_request(load_sources())]
+        return (
+            f"ok latest_run={status} sample_items={item_count} "
+            f"sources={len(selected_sources)} first_sources={','.join(selected_sources[:6])}\n"
+        ), 200
     except Exception as exc:
         traceback.print_exc()
         return f"error {type(exc).__name__}: {exc}\n", 500
+
+
+@app.route("/version", methods=["GET"])
+def version():
+    commit = (
+        os.getenv("RENDER_GIT_COMMIT")
+        or os.getenv("COMMIT_SHA")
+        or os.getenv("GIT_COMMIT")
+        or "unknown"
+    )
+    return f"Prisma Desk version commit={commit}\n", 200
 
 
 @app.route("/update", methods=["GET", "POST"])

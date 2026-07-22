@@ -23,9 +23,17 @@ class UpdateRunnerTest(unittest.TestCase):
             with patch("desk.update_runner.load_yaml", return_value={"sources": sources}):
                 self.assertEqual(len(load_sources()), 20)
 
-    def test_explicit_source_limit_still_limits_sources(self):
+    def test_source_limit_only_applies_when_explicitly_enabled(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(20)]
         with patch.dict(os.environ, {"PRISMA_SOURCE_LIMIT": "5"}, clear=False):
+            with patch("desk.update_runner.load_yaml", return_value={"sources": sources}):
+                self.assertEqual(len(load_sources()), 20)
+
+        with patch.dict(
+            os.environ,
+            {"PRISMA_SOURCE_LIMIT": "5", "PRISMA_ENABLE_SOURCE_LIMIT": "true"},
+            clear=False,
+        ):
             with patch("desk.update_runner.load_yaml", return_value={"sources": sources}):
                 self.assertEqual(len(load_sources()), 5)
 
