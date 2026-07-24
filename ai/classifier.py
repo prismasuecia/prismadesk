@@ -64,6 +64,13 @@ HIGH_IMPACT_PRISMA_TERMS = {
     "anhöriginvandring",
     "familjeåterförening",
     "uppehållstillstånd",
+    "återkalla uppehållstillstånd",
+    "avslå ansökningar",
+    "vandel",
+    "skötsamhet",
+    "hederlighet",
+    "regelefterlevnad",
+    "utlänningslagen",
     "återvändande",
     "återvändandecenter",
     "mottagningscenter",
@@ -697,6 +704,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "youth_family",
         "media_stockholm",
         "media_economy",
+        "migration_agency",
         "politics",
         "concerts_all_stockholm",
         "concert_venue",
@@ -941,6 +949,8 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
+    if item.category == "migration_agency":
+        prisma_score += 3
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family", "pride", "pride_accreditation", *PRISMA_SEARCH_CATEGORIES}:
         prisma_score += 3
     if item.category in {"government", "prime_minister", "nato", "royal", "defence"}:

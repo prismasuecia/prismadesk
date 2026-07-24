@@ -550,6 +550,13 @@ prisma_terms:
   - anhöriginvandring
   - familjeåterförening
   - uppehållstillstånd
+  - återkalla uppehållstillstånd
+  - avslå ansökningar
+  - vandel
+  - skötsamhet
+  - hederlighet
+  - regelefterlevnad
+  - utlänningslagen
   - återvändande
   - återvändandecenter
   - mottagningscenter
@@ -764,6 +771,10 @@ prisma_consequence_markers:
   - börjar gälla
   - får rätt till
   - måste
+  - återkalla
+  - avslå
+  - nekar
+  - nekas
   - avråder från
   - gäller tills vidare
   - vill införa

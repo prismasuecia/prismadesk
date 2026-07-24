@@ -1291,6 +1291,51 @@ class ClassifierTest(unittest.TestCase):
         self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
         self.assertIn("Partipolitiskt förslag", item.raw_json.get("why_it_matters", ""))
 
+    def test_migrationsverket_vandel_requirements_are_publish_today(self):
+        item = NewsItem(
+            source_name="Migrationsverket nyheter",
+            source_url="https://www.migrationsverket.se/rss",
+            title="Skärpta krav på skötsamhet och hederlighet",
+            summary=(
+                "Från och med 13 juli gäller skärpta krav på vandel vid uppehållstillstånd. "
+                "De nya reglerna ger Migrationsverket ökade möjligheter att avslå ansökningar "
+                "eller återkalla uppehållstillstånd på grund av bristande skötsamhet."
+            ),
+            category="migration_agency",
+            url="https://www.migrationsverket.se/nyhetsarkiv/nyhetsarkiv/2026-07-13-skarpta-krav-pa-skotsamhet-och-hederlighet.html",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertFalse(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "PUBLICERA_IDAG")
+        self.assertIn("Migrationsverket", item.raw_json.get("matched_terms", {}).get("prisma", []))
+
+    def test_old_migrationsverket_vandel_requirements_are_follow_up_not_ignore(self):
+        item = NewsItem(
+            source_name="Migrationsverket nyheter",
+            source_url="https://www.migrationsverket.se/rss",
+            title="Skärpta krav på skötsamhet och hederlighet",
+            summary=(
+                "Från och med 13 juli gäller skärpta krav på vandel vid uppehållstillstånd. "
+                "De nya reglerna ger Migrationsverket ökade möjligheter att avslå ansökningar "
+                "eller återkalla uppehållstillstånd på grund av bristande skötsamhet."
+            ),
+            category="migration_agency",
+            url="https://www.migrationsverket.se/nyhetsarkiv/nyhetsarkiv/2026-07-13-skarpta-krav-pa-skotsamhet-och-hederlighet.html",
+            published_at="2026-07-13",
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertEqual(item.action_recommendation, "FÖLJ_UPP")
+        self.assertEqual(item.raw_json.get("temporal_status"), "OLD")
+
 
 if __name__ == "__main__":
     unittest.main()

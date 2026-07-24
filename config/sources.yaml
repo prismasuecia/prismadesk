@@ -29,6 +29,16 @@ sources:
     type: rss
     category: press_releases
     priority: red
+  - name: Migrationsverket nyheter
+    url: https://www.migrationsverket.se/rss
+    type: rss
+    category: migration_agency
+    priority: orange
+  - name: Migrationsverket arbetstagare
+    url: https://www.migrationsverket.se/rss_arbeta
+    type: rss
+    category: migration_agency
+    priority: orange
   - name: Liberalerna pressrum
     url: https://www.liberalerna.se/pressrum
     type: web
