@@ -533,6 +533,33 @@ class ClassifierTest(unittest.TestCase):
         self.assertIn("flygformation", " ".join(item.raw_json.get("image_suggestions", [])).lower())
         self.assertIn("Försvarsmaktens", " ".join(item.raw_json.get("access_guidance", [])))
 
+    def test_police_defence_helicopter_exercise_over_riksdagen_is_red_zuma(self):
+        future = datetime.now(timezone.utc) + timedelta(days=1)
+        item = NewsItem(
+            source_name="Polisen händelser Stockholm",
+            source_url="https://polisen.se/aktuellt/rss/stockholms-lan/handelser-rss---stockholms-lan/",
+            title=f"{future.day} {SWEDISH_MONTHS[future.month]} 07.44, Övrigt, Stockholm",
+            summary=(
+                f"Den {swedish_date(future)} genomför Polisen och Försvarsmakten en övning med helikoptrar över bland annat Riksdagen. "
+                "Övningen genomförs under förmiddagen. Helikoptrarna som deltar i övningen kommer under vissa moment "
+                "flyga på låg höjd. Försvarsmaktens helikopterflottilj deltar med en Black Hawk."
+            ),
+            category="police_events_stockholm",
+            url="https://polisen.se/aktuellt/handelser/2026/juli/24/24-juli-07.44-ovrigt-stockholm/",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "RED")
+        self.assertIn(item.desk, {"ZUMA", "BOTH"})
+        self.assertTrue(item.physical_presence)
+        self.assertEqual(item.action_recommendation, "RING_MAILA_NU")
+        self.assertEqual(item.raw_json.get("location_fit"), "STOCKHOLM")
+        self.assertTrue(item.raw_json["matched_terms"]["zuma_picture_value"])
+        self.assertIn("Black Hawk", " ".join(item.raw_json.get("image_suggestions", [])))
+        self.assertIn("polis-/försvarsövning", " ".join(item.raw_json.get("access_guidance", [])))
+
     def test_civil_alert_press_meeting_is_prisma_and_zuma_picture_event(self):
         item = NewsItem(
             source_name="TT bildsignal",

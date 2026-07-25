@@ -19,7 +19,7 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 WEB_REQUEST_MAX_SECONDS = 14.0
-WEB_REQUEST_MAX_SOURCES = 20
+WEB_REQUEST_MAX_SOURCES = 21
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -45,6 +45,7 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Prisma webbsök lagar samhälle",
     "Prisma webbsök vardag myndigheter",
     "Prisma webbsök kultur latino Stockholm",
+    "Polisen händelser Stockholm",
     "Songkick Stockholm alla konserter",
     "Debaser Stockholm kalender",
     "Casa Latina Sverige",

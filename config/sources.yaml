@@ -179,6 +179,11 @@ sources:
     type: rss
     category: police_stockholm
     priority: orange
+  - name: Polisen händelser Stockholm
+    url: https://polisen.se/aktuellt/rss/stockholms-lan/handelser-rss---stockholms-lan/
+    type: rss
+    category: police_events_stockholm
+    priority: orange
   - name: Valmyndigheten pressrum
     url: https://www.val.se/servicelankar/servicelankar/pressrum
     type: web

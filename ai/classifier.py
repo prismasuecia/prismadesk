@@ -373,6 +373,16 @@ def image_suggestions_for_item(
             ]
         )
 
+    if _contains_any(text, ["Black Hawk", "Helikopter 16", "övning med helikoptrar", "helikopterövning", "lågflygande helikopter", "låg höjd"]):
+        suggestions.extend(
+            [
+                "Lågflygande Black Hawk eller polis-/försvarshelikopter med Riksdagen, Slottet eller Stockholms ström i bild.",
+                "Riksbron, Norrbro, Riksplan eller kajerna runt Helgeandsholmen som fotoposition för helikopter över maktcentrum.",
+                "Poliser, avspärrningar eller uniformerad personal i citymiljö om övningen syns på marken.",
+                "Publik och förbipasserande som reagerar på helikoptrar över centrala Stockholm.",
+            ]
+        )
+
     if _contains_any(text, ["SL", "kollektivtrafik", "tåg", "väg", "trafik", "Arlanda", "flyg"]):
         suggestions.extend(
             [
@@ -583,6 +593,11 @@ def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
             "överflygning",
             "flyguppvisning",
             "flygformation",
+            "övning med helikoptrar",
+            "helikopterövning",
+            "black hawk",
+            "helikopter 16",
+            "lågflygande helikopter",
             "flygarmonumentet",
             "högvaktsavlösning",
             "vaktparad",
@@ -595,6 +610,11 @@ def access_guidance_for_item(item: NewsItem, text: str) -> list[str]:
                 "För Stockholm: kontrollera bästa fotopositioner vid Slottet, Karlaplan, Skeppsholmen, Strömbron, Norrbro, kajerna och öppna cityytor.",
                 "Fråga om väderreserv, ändrad flygrutt, säkerhetsavstånd, drönarförbud och om foto vid militär ceremoni kräver särskilda instruktioner.",
             ]
+        )
+
+    if any(term in lowered for term in ["polisen och försvarsmakten", "övning med helikoptrar", "riksdagshuset", "riksdagen"]):
+        guidance.append(
+            "Vid polis-/försvarsövning vid Riksdagen: kontrollera Polisen Stockholms län, Riksdagens presscenter och Försvarsmaktens pressjour för tider, säkerhetsavstånd, fotopositioner och om övningen är publik eller skyddad."
         )
 
     if any(
@@ -888,11 +908,21 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
                 "JAS Gripen",
                 "Gripen",
                 "luftfartyg",
+                "övning med helikoptrar",
+                "helikopterövning",
+                "lågflygande helikopter",
+                "låg höjd",
+                "Black Hawk",
+                "Helikopter 16",
             ],
         )
         and (
-            item.category == "defence"
-            or _contains_any(text, ["Försvarsmakten", "militär", "jubileum", "100 år", "vaktparad", "högvaktsavlösning"])
+            item.category in {"defence", "defence_events", "police_stockholm", "police_events_stockholm"}
+            or _contains_any(text, ["Försvarsmakten", "Polisen", "Polismyndigheten", "militär", "jubileum", "100 år", "vaktparad", "högvaktsavlösning"])
+        )
+        and (
+            zuma_picture_place_terms
+            or _contains_any(text, ["Riksdagen", "riksdagshuset", "riksdagshusen", "centrala Stockholm", "Stockholms innerstad"])
         )
     )
     royal_jubilee_picture_event = bool(
@@ -1004,7 +1034,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         item.physical_presence = True
         item.action_recommendation = "RING_MAILA_NU"
         item.raw_json["why_it_matters"] = (
-            "Militär flyguppvisning eller historisk överflygning över Stockholm: mycket starkt ZUMA-bildläge och tydlig Prisma-förklaring. "
+            "Militär eller polisledd flyghändelse över centrala Stockholm: mycket starkt ZUMA-bildläge och tydlig Prisma-förklaring. "
             "Kontrollera tid, rutt och fotoposition direkt."
         )
     elif royal_jubilee_picture_event:
