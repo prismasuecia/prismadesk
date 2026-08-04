@@ -449,7 +449,7 @@ def latest_run() -> sqlite3.Row | None:
         return conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT 1").fetchone()
 
 
-def mark_stale_running_runs(max_age_minutes: int = 10) -> int:
+def mark_stale_running_runs(max_age_minutes: int = 2) -> int:
     cutoff = (datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)).isoformat(
         timespec="seconds"
     )

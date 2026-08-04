@@ -429,6 +429,33 @@ def version():
     return f"Prisma Desk version commit={commit}\n", 200
 
 
+@app.route("/last-run", methods=["GET"])
+def last_run_debug():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    database.init_db()
+    database.mark_stale_running_runs(max_age_minutes=2)
+    latest_run = normalize_latest_run(database.latest_run())
+    if not latest_run:
+        return "Ingen körning finns ännu.\n", 200
+    lines = [
+        f"id={latest_run.get('id')}",
+        f"status={latest_run.get('status')}",
+        f"started_at={latest_run.get('started_at')}",
+        f"finished_at={latest_run.get('finished_at')}",
+        f"items_found={latest_run.get('items_found')}",
+        f"red_alerts_found={latest_run.get('red_alerts_found')}",
+        f"sources_attempted={latest_run.get('sources_attempted')}",
+        f"sources_configured={latest_run.get('sources_configured')}",
+        f"sources_failed={latest_run.get('sources_failed')}",
+        f"sources_skipped={latest_run.get('sources_skipped')}",
+        "errors:",
+        latest_run.get("errors") or "",
+    ]
+    return "\n".join(str(line) for line in lines) + "\n", 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
 @app.route("/update", methods=["GET", "POST"])
 def update():
     auth_redirect = require_auth()

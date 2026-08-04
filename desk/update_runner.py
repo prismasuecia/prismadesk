@@ -18,8 +18,8 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-WEB_REQUEST_MAX_SECONDS = 14.0
-WEB_REQUEST_MAX_SOURCES = 21
+WEB_REQUEST_MAX_SECONDS = 12.0
+WEB_REQUEST_MAX_SOURCES = 20
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -28,24 +28,40 @@ SOURCE_PRIORITY_ORDER = {
     "green": 4,
 }
 DEFAULT_DESK_MIX_SOURCE_NAMES = [
-    "Regeringen pressmeddelanden web",
-    "UD avrådan",
+    "Regeringen pressmeddelanden",
+    "Regeringen statsministern",
     "Via TT",
     "Migrationsverket nyheter",
     "Migrationsverket arbetstagare",
+    "Polisen press Stockholm",
+    "Polisen nyheter Stockholm",
     "Polisen händelser Stockholm",
+    "Försvarsmakten Mynewsdesk nyheter",
+    "Försvarsmakten Mynewsdesk event",
+    "MCF civilt försvar Mynewsdesk",
     "Prisma webbsök UD Latinamerika",
     "Prisma webbsök partiförslag migration integration",
     "Prisma webbsök SD slöjförbud",
-    "DN Kalendariet",
-    "Visit Stockholm events",
     "Stockholm Pride nyheter",
-    "Stockholm Pride pressackreditering",
     "Prisma webbsök migration",
     "Prisma webbsök arbete ekonomi",
     "Prisma webbsök lagar samhälle",
     "Prisma webbsök vardag myndigheter",
     "Prisma webbsök kultur latino Stockholm",
+    "SVT Stockholm",
+    "P4 Stockholm",
+    "Mitt i Stockholm",
+    "Trafikverket pressmeddelanden",
+    "SVT Nyheter",
+    "Sveriges Radio Ekot",
+    "Dagens Nyheter",
+    "Expressen nyheter",
+    "Aftonbladet senaste nytt",
+    "Riksdagen kalender kammaren",
+    "UD avrådan",
+    "DN Kalendariet",
+    "Visit Stockholm events",
+    "Stockholm Pride pressackreditering",
     "Songkick Stockholm alla konserter",
     "Debaser Stockholm kalender",
     "Casa Latina Sverige",
