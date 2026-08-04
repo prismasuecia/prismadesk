@@ -9,6 +9,7 @@ from desk.update_runner import (
     clamp_seconds_for_web_request,
     clamp_sources_for_web_request,
     load_sources,
+    ordered_sources_for_update,
 )
 
 
@@ -89,6 +90,23 @@ class UpdateRunnerTest(unittest.TestCase):
         self.assertIn("Migrationsverket nyheter", selected_names)
         self.assertIn("Migrationsverket arbetstagare", selected_names)
         self.assertIn("Polisen händelser Stockholm", selected_names)
+
+    def test_update_runs_fast_feed_sources_before_heavy_web_sources(self):
+        sources = [
+            {"name": "Regeringen pressmeddelanden web", "type": "web"},
+            {"name": "UD avrådan", "type": "web"},
+            {"name": "Via TT", "type": "rss"},
+            {"name": "Migrationsverket nyheter", "type": "rss"},
+            {"name": "Polisen händelser Stockholm", "type": "rss"},
+            {"name": "DN Kalendariet", "type": "web"},
+        ]
+
+        with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):
+            ordered_names = [source["name"] for source in ordered_sources_for_update(sources)]
+
+        self.assertLess(ordered_names.index("Migrationsverket nyheter"), ordered_names.index("Regeringen pressmeddelanden web"))
+        self.assertLess(ordered_names.index("Polisen händelser Stockholm"), ordered_names.index("UD avrådan"))
+        self.assertLess(ordered_names.index("Via TT"), ordered_names.index("DN Kalendariet"))
 
     def test_long_update_can_be_enabled_for_local_runs(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]

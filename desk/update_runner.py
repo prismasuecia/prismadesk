@@ -33,6 +33,7 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Via TT",
     "Migrationsverket nyheter",
     "Migrationsverket arbetstagare",
+    "Polisen händelser Stockholm",
     "Prisma webbsök UD Latinamerika",
     "Prisma webbsök partiförslag migration integration",
     "Prisma webbsök SD slöjförbud",
@@ -45,7 +46,6 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Prisma webbsök lagar samhälle",
     "Prisma webbsök vardag myndigheter",
     "Prisma webbsök kultur latino Stockholm",
-    "Polisen händelser Stockholm",
     "Songkick Stockholm alla konserter",
     "Debaser Stockholm kalender",
     "Casa Latina Sverige",
@@ -100,6 +100,21 @@ def clamp_sources_for_web_request(sources: list[dict]) -> list[dict]:
     return selected[:WEB_REQUEST_MAX_SOURCES]
 
 
+def ordered_sources_for_update(sources: list[dict]) -> list[dict]:
+    selected = clamp_sources_for_web_request(sources)
+    if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
+        return selected
+    source_type_order = {"rss": 0, "ical": 1, "web": 2}
+    ordered_pairs = sorted(
+        enumerate(selected),
+        key=lambda pair: (
+            source_type_order.get(str(pair[1].get("type", "web")).lower(), 2),
+            pair[0],
+        ),
+    )
+    return [source for _, source in ordered_pairs]
+
+
 def clamp_seconds_for_web_request(max_seconds: float) -> float:
     if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
         return max_seconds
@@ -145,7 +160,7 @@ def run_update() -> dict:
     all_sources = load_yaml(BASE_DIR / "config" / "sources.yaml").get("sources", [])
     configured_sources = len(all_sources)
     configured_selected_sources = all_sources
-    selected_sources = clamp_sources_for_web_request(configured_selected_sources)
+    selected_sources = ordered_sources_for_update(configured_selected_sources)
     sources_attempted = 0
     sources_failed = 0
     sources_skipped = max(configured_sources - len(selected_sources), 0)
