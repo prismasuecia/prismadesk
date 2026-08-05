@@ -818,6 +818,28 @@ class ClassifierTest(unittest.TestCase):
         self.assertFalse(item.physical_presence)
         self.assertNotEqual(item.action_recommendation, "ÅK_DIT")
 
+    def test_foreign_minister_trip_to_colombia_is_prisma_publish_today(self):
+        item = NewsItem(
+            source_name="Regeringen utrikesministern",
+            source_url="https://www.regeringen.se/sveriges-regering/utrikesdepartementet/maria-malmer-stenergard/",
+            title="Utrikesministern reser till Latinamerika",
+            summary=(
+                "Utrikesminister Maria Malmer Stenergard besöker Brasilien och Colombia den 5-7 augusti. "
+                "Under resan kommer utrikesministern att träffa regeringsföreträdare i regionen och delta vid "
+                "presidentinstallationen i Colombia."
+            ),
+            category="foreign_minister",
+            url="https://www.regeringen.se/pressmeddelanden/2026/08/utrikesministern-reser-till-latinamerika/",
+            published_at=datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000"),
+        )
+
+        classify_item(item, self.rules)
+
+        self.assertEqual(item.priority, "ORANGE")
+        self.assertEqual(item.desk, "PRISMA")
+        self.assertEqual(item.action_recommendation, "PUBLICERA_IDAG")
+        self.assertFalse(item.physical_presence)
+
     def test_foreign_media_accident_without_sweden_link_is_ignored(self):
         item = NewsItem(
             source_name="Aftonbladet senaste nytt",

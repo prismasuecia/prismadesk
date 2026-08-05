@@ -709,6 +709,26 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and party_policy_terms
         and (specific_prisma_terms or high_impact_prisma_terms or item.category == "search_party_policy")
     )
+    is_latam_minister_travel = bool(
+        latam_terms
+        and (
+            item.category in {"foreign_minister", "government", "press_releases"}
+            or red_people
+            or _contains_any(text, ["utrikesministern", "utrikesminister", "statsråd", "minister"])
+        )
+        and _contains_any(
+            text,
+            [
+                "reser till",
+                "besöker",
+                "besök",
+                "deltar vid",
+                "presidentinstallationen",
+                "presidentinstallation",
+                "regeringsföreträdare",
+            ],
+        )
+    )
     is_media = item.category in {"media_breaking", "media_national", "media_stockholm", "media_economy"}
     is_prisma_topic = bool(specific_prisma_terms or item.category in {
         "stockholm_city",
@@ -726,6 +746,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "media_economy",
         "migration_agency",
         "politics",
+        "foreign_minister",
         "concerts_all_stockholm",
         "concert_venue",
         "arena_stockholm",
@@ -983,7 +1004,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         prisma_score += 3
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family", "pride", "pride_accreditation", *PRISMA_SEARCH_CATEGORIES}:
         prisma_score += 3
-    if item.category in {"government", "prime_minister", "nato", "royal", "defence"}:
+    if item.category in {"government", "prime_minister", "foreign_minister", "nato", "royal", "defence"}:
         zuma_score += 3
     if mail_terms:
         zuma_score += 1
@@ -995,7 +1016,16 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         and high_impact_prisma_terms
     )
 
-    if is_ud_latam_advisory:
+    if is_latam_minister_travel:
+        item.priority = "ORANGE"
+        item.desk = "PRISMA"
+        item.physical_presence = False
+        item.accreditation_needed = False if item.accreditation_needed is None else item.accreditation_needed
+        item.action_recommendation = "PUBLICERA_IDAG"
+        item.raw_json["why_it_matters"] = (
+            "Svensk utrikesminister eller statsråd reser till Latinamerika. Direkt relevant för Prisma Suecias publik med anknytning till regionen och för Sveriges relationer med latinamerikanska länder."
+        )
+    elif is_ud_latam_advisory:
         item.priority = "ORANGE"
         item.desk = "PRISMA"
         item.physical_presence = False
@@ -1348,7 +1378,7 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
             item.physical_presence = False
             if item.action_recommendation in {"ÅK_DIT", "SÖK_ACKREDITERING", "RING_MAILA_NU"}:
                 item.action_recommendation = "FÖLJ_UPP"
-        if outside_event_or_visit and item.action_recommendation == "PUBLICERA_IDAG":
+        if outside_event_or_visit and item.action_recommendation == "PUBLICERA_IDAG" and not is_latam_minister_travel:
             item.action_recommendation = "FÖLJ_UPP"
             if item.priority == "ORANGE":
                 item.priority = "YELLOW"

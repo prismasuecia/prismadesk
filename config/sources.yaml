@@ -24,6 +24,11 @@ sources:
     type: rss
     category: prime_minister
     priority: red
+  - name: Regeringen utrikesministern
+    url: https://www.regeringen.se/sveriges-regering/utrikesdepartementet/maria-malmer-stenergard/
+    type: web
+    category: foreign_minister
+    priority: orange
   - name: Via TT
     url: https://via.tt.se/rss/releases/latest
     type: rss

@@ -108,6 +108,13 @@ class UpdateRunnerTest(unittest.TestCase):
         self.assertLess(ordered_names.index("Polisen händelser Stockholm"), ordered_names.index("UD avrådan"))
         self.assertLess(ordered_names.index("Via TT"), ordered_names.index("DN Kalendariet"))
 
+    def test_real_default_mix_includes_foreign_minister_source(self):
+        with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):
+            ordered_names = [source["name"] for source in ordered_sources_for_update(load_sources())]
+
+        self.assertIn("Regeringen utrikesministern", ordered_names)
+        self.assertLess(ordered_names.index("Regeringen utrikesministern"), WEB_REQUEST_MAX_SOURCES)
+
     def test_long_update_can_be_enabled_for_local_runs(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
         with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "true"}, clear=False):
