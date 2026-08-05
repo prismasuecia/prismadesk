@@ -112,8 +112,13 @@ class UpdateRunnerTest(unittest.TestCase):
         with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):
             ordered_names = [source["name"] for source in ordered_sources_for_update(load_sources())]
 
-        self.assertIn("Regeringen utrikesministern", ordered_names)
-        self.assertLess(ordered_names.index("Regeringen utrikesministern"), WEB_REQUEST_MAX_SOURCES)
+        for source_name in (
+            "Regeringen utrikesministern RSS",
+            "Regeringen Utrikesdepartementet RSS",
+            "Regeringen utrikesministern",
+        ):
+            self.assertIn(source_name, ordered_names)
+            self.assertLess(ordered_names.index(source_name), WEB_REQUEST_MAX_SOURCES)
 
     def test_real_default_mix_includes_fast_prisma_authority_searches(self):
         with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):

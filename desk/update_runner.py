@@ -19,7 +19,7 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 WEB_REQUEST_MAX_SECONDS = 12.0
-WEB_REQUEST_MAX_SOURCES = 24
+WEB_REQUEST_MAX_SOURCES = 26
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -30,6 +30,8 @@ SOURCE_PRIORITY_ORDER = {
 DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Regeringen pressmeddelanden",
     "Regeringen statsministern",
+    "Regeringen utrikesministern RSS",
+    "Regeringen Utrikesdepartementet RSS",
     "Regeringen utrikesministern",
     "Via TT",
     "Migrationsverket nyheter",

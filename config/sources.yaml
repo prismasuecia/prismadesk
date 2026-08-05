@@ -24,6 +24,16 @@ sources:
     type: rss
     category: prime_minister
     priority: red
+  - name: Regeringen utrikesministern RSS
+    url: https://www.regeringen.se/Filter/RssFeed?filterType=Taxonomy&filterByType=FilterablePageBase&preFilteredCategories=1284%2C1285%2C1286%2C1287%2C1288%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297%2C2425&rootPageReference=0&filteredContentCategories=1334&filteredPoliticalLevelCategories=&filteredPoliticalAreaCategories=&filteredPublisherCategories=2621
+    type: rss
+    category: foreign_minister
+    priority: orange
+  - name: Regeringen Utrikesdepartementet RSS
+    url: https://www.regeringen.se/Filter/RssFeed?filterType=Taxonomy&filterByType=FilterablePageBase&preFilteredCategories=1284%2C1285%2C1286%2C1287%2C1288%2C1290%2C1291%2C1292%2C1293%2C1294%2C1295%2C1296%2C1297%2C2425&rootPageReference=0&filteredContentCategories=1334&filteredPoliticalLevelCategories=&filteredPublisherCategories=1295
+    type: rss
+    category: foreign_minister
+    priority: orange
   - name: Regeringen utrikesministern
     url: https://www.regeringen.se/sveriges-regering/utrikesdepartementet/maria-malmer-stenergard/
     type: web
