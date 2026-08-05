@@ -5,9 +5,10 @@ import traceback
 from collections import OrderedDict
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
+from threading import Lock, Thread
 
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException
 
 from desk import database
@@ -20,6 +21,7 @@ from desk.update_runner import load_sources, ordered_sources_for_update, run_upd
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("PRISMA_DESK_SECRET_KEY") or os.getenv("PRISMA_DESK_PASSWORD") or "local-dev-only"
+update_lock = Lock()
 
 
 SECTIONS = OrderedDict(
@@ -113,6 +115,44 @@ def normalize_latest_run(row):
         "errors": "",
     }
     return {**defaults, **data}
+
+
+def latest_run_payload():
+    database.init_db()
+    database.mark_stale_running_runs()
+    latest_run = normalize_latest_run(database.latest_run())
+    return latest_run or {
+        "id": None,
+        "started_at": None,
+        "finished_at": None,
+        "status": "NO_RUNS",
+        "items_found": 0,
+        "red_alerts_found": 0,
+        "sources_configured": 0,
+        "sources_attempted": 0,
+        "sources_failed": 0,
+        "sources_skipped": 0,
+        "errors": "",
+    }
+
+
+def update_is_running() -> bool:
+    if update_lock.locked():
+        return True
+    latest_run = latest_run_payload()
+    return latest_run.get("status") == "RUNNING"
+
+
+def run_update_worker() -> None:
+    try:
+        run_update()
+    except Exception:
+        traceback.print_exc()
+    finally:
+        try:
+            update_lock.release()
+        except RuntimeError:
+            pass
 
 
 def item_from_dict(item):
@@ -429,6 +469,30 @@ def version():
     return f"Prisma Desk version commit={commit}\n", 200
 
 
+@app.route("/run-status", methods=["GET"])
+def run_status():
+    auth_redirect = require_auth()
+    if auth_redirect:
+        return auth_redirect
+    latest_run = latest_run_payload()
+    return jsonify(
+        {
+            "active": update_is_running(),
+            "id": latest_run.get("id"),
+            "status": latest_run.get("status"),
+            "started_at": latest_run.get("started_at"),
+            "finished_at": latest_run.get("finished_at"),
+            "items_found": latest_run.get("items_found") or 0,
+            "red_alerts_found": latest_run.get("red_alerts_found") or 0,
+            "sources_attempted": latest_run.get("sources_attempted") or 0,
+            "sources_configured": latest_run.get("sources_configured") or 0,
+            "sources_failed": latest_run.get("sources_failed") or 0,
+            "sources_skipped": latest_run.get("sources_skipped") or 0,
+            "errors": latest_run.get("errors") or "",
+        }
+    )
+
+
 @app.route("/last-run", methods=["GET"])
 def last_run_debug():
     auth_redirect = require_auth()
@@ -465,27 +529,20 @@ def update():
         return redirect(url_for("dashboard"))
     database.init_db()
     database.mark_stale_running_runs()
+    if update_is_running():
+        return redirect(url_for("dashboard", message="Uppdatering kör redan. Vänta tills statusen ändras."))
+    if not update_lock.acquire(blocking=False):
+        return redirect(url_for("dashboard", message="Uppdatering kör redan."))
     try:
-        result = run_update()
+        Thread(target=run_update_worker, daemon=True).start()
     except Exception as exc:
+        try:
+            update_lock.release()
+        except RuntimeError:
+            pass
         traceback.print_exc()
-        message = f"Uppdateringen kraschade: {type(exc).__name__}. Öppna Källhälsa eller Render-loggen för detaljer."
-        return redirect(url_for("dashboard", message=message))
-    message = f"Uppdatering klar: {result['saved']} nya sparade, {result['found']} fynd analyserade, {result['red_alerts']} rödalarm."
-    source_stats = result.get("source_stats") or {}
-    if source_stats:
-        message += (
-            " Källor: "
-            f"{source_stats.get('attempted', 0)}/{source_stats.get('configured', 0)} körda"
-        )
-        if source_stats.get("failed", 0):
-            message += f", {source_stats.get('failed')} fel"
-        if source_stats.get("skipped", 0):
-            message += f", {source_stats.get('skipped')} hoppade över"
-        message += "."
-    if result["errors"]:
-        message += f" {len(result['errors'])} källa/källor gav fel."
-    return redirect(url_for("dashboard", message=message))
+        return redirect(url_for("dashboard", message=f"Kunde inte starta uppdatering: {type(exc).__name__}."))
+    return redirect(url_for("dashboard", message="Uppdatering startad. Sidan uppdaterar status automatiskt."))
 
 
 @app.route("/item/<int:item_id>/dismiss", methods=["POST"])

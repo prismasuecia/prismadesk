@@ -44,6 +44,22 @@
     <p class="flash">{{ message }}</p>
   {% endif %}
 
+  <section class="run-status-panel" data-run-status-panel data-run-status-url="{{ url_for('run_status') }}">
+    <div>
+      <span class="label">Live-status</span>
+      <strong data-run-status-text>{{ latest_run["status"] if latest_run else "Väntar" }}</strong>
+    </div>
+    <p data-run-status-detail>
+      {% if latest_run and latest_run["status"] == "RUNNING" %}
+        Uppdatering körs. Lämna sidan öppen eller kom tillbaka om en stund.
+      {% elif latest_run %}
+        Senaste körning: {{ latest_run["sources_attempted"] or 0 }}/{{ latest_run["sources_configured"] or 0 }} källor, {{ latest_run["sources_failed"] or 0 }} fel.
+      {% else %}
+        Ingen körning ännu.
+      {% endif %}
+    </p>
+  </section>
+
   {% if previous_visit and new_since_last_visit > 0 %}
     <p class="flash">NYTT: {{ new_since_last_visit }} nya fynd sedan {{ previous_visit }}</p>
   {% endif %}
