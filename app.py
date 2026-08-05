@@ -493,6 +493,13 @@ def run_status():
     )
 
 
+def wants_json_response() -> bool:
+    return (
+        request.headers.get("X-Requested-With") == "fetch"
+        or "application/json" in request.headers.get("Accept", "")
+    )
+
+
 @app.route("/last-run", methods=["GET"])
 def last_run_debug():
     auth_redirect = require_auth()
@@ -530,8 +537,12 @@ def update():
     database.init_db()
     database.mark_stale_running_runs()
     if update_is_running():
+        if wants_json_response():
+            return jsonify({"started": False, "active": True, "message": "Uppdatering kör redan."}), 409
         return redirect(url_for("dashboard", message="Uppdatering kör redan. Vänta tills statusen ändras."))
     if not update_lock.acquire(blocking=False):
+        if wants_json_response():
+            return jsonify({"started": False, "active": True, "message": "Uppdatering kör redan."}), 409
         return redirect(url_for("dashboard", message="Uppdatering kör redan."))
     try:
         Thread(target=run_update_worker, daemon=True).start()
@@ -541,7 +552,11 @@ def update():
         except RuntimeError:
             pass
         traceback.print_exc()
+        if wants_json_response():
+            return jsonify({"started": False, "active": False, "message": f"Kunde inte starta uppdatering: {type(exc).__name__}."}), 500
         return redirect(url_for("dashboard", message=f"Kunde inte starta uppdatering: {type(exc).__name__}."))
+    if wants_json_response():
+        return jsonify({"started": True, "active": True, "message": "Uppdatering startad."}), 202
     return redirect(url_for("dashboard", message="Uppdatering startad. Sidan uppdaterar status automatiskt."))
 
 

@@ -73,6 +73,39 @@ class AppImportTest(unittest.TestCase):
         finally:
             database.DB_PATH = original_db_path
 
+    def test_update_fetch_request_returns_json_started_response(self):
+        original_db_path = database.DB_PATH
+
+        class FakeThread:
+            def __init__(self, target, daemon):
+                self.target = target
+                self.daemon = daemon
+
+            def start(self):
+                pass
+
+        try:
+            database.DB_PATH = Path(tempfile.mkdtemp()) / "fetch.sqlite3"
+            import app as app_module
+
+            app_module.database.DB_PATH = database.DB_PATH
+            app_module.app.testing = True
+            with patch.dict("os.environ", {"PRISMA_DESK_PASSWORD": ""}, clear=False):
+                with patch("app.Thread", FakeThread):
+                    response = app_module.app.test_client().post(
+                        "/update",
+                        headers={
+                            "Accept": "application/json",
+                            "X-Requested-With": "fetch",
+                        },
+                    )
+
+            self.assertEqual(response.status_code, 202)
+            self.assertEqual(response.json["started"], True)
+            self.assertEqual(response.json["active"], True)
+        finally:
+            database.DB_PATH = original_db_path
+
     def test_update_refuses_second_click_while_job_is_running(self):
         original_db_path = database.DB_PATH
         try:
