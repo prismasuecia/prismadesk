@@ -35,6 +35,9 @@ PRISMA_SEARCH_CATEGORIES = {
     "search_work_economy",
     "search_law_society",
     "search_daily_life",
+    "search_social_insurance",
+    "search_daily_authorities",
+    "search_health",
     "search_culture_latino",
     "search_ud_latam",
     "search_party_policy",
@@ -745,6 +748,16 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
         "media_stockholm",
         "media_economy",
         "migration_agency",
+        "migration_regulations",
+        "social_insurance",
+        "labour_market",
+        "tax_authority",
+        "student_finance",
+        "health_social_care",
+        "public_health",
+        "consumer_rights",
+        "debt_authority",
+        "housing_authority",
         "politics",
         "foreign_minister",
         "concerts_all_stockholm",
@@ -1000,8 +1013,19 @@ def classify_item(item: NewsItem, rules: dict) -> NewsItem:
     )
     if item.category in {"stockholm_city", "stockholm_city_press", "transport", "rail", "aviation", "transport_infrastructure"}:
         prisma_score += 2
-    if item.category == "migration_agency":
+    if item.category in {"migration_agency", "migration_regulations"}:
         prisma_score += 3
+    if item.category in {
+        "social_insurance",
+        "labour_market",
+        "tax_authority",
+        "student_finance",
+        "health_social_care",
+        "public_health",
+    }:
+        prisma_score += 3
+    if item.category in {"consumer_rights", "debt_authority", "housing_authority"}:
+        prisma_score += 2
     if item.category in {"latino_culture", "latino_community", "culture", "youth_family", "pride", "pride_accreditation", *PRISMA_SEARCH_CATEGORIES}:
         prisma_score += 3
     if item.category in {"government", "prime_minister", "foreign_minister", "nato", "royal", "defence"}:

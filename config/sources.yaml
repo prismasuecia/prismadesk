@@ -44,6 +44,56 @@ sources:
     type: rss
     category: migration_agency
     priority: orange
+  - name: Migrationsverket föreskrifter
+    url: https://www.migrationsverket.se/om-migrationsverket/styrning-och-uppfoljning/foreskrifter.html
+    type: web
+    category: migration_regulations
+    priority: orange
+  - name: Försäkringskassan pressmeddelanden
+    url: https://www.forsakringskassan.se/press/pressmeddelanden
+    type: web
+    category: social_insurance
+    priority: orange
+  - name: Arbetsförmedlingen press
+    url: https://arbetsformedlingen.se/om-oss/press
+    type: web
+    category: labour_market
+    priority: orange
+  - name: Skatteverket nyheter
+    url: https://www.skatteverket.se/omoss/press/nyheter
+    type: web
+    category: tax_authority
+    priority: orange
+  - name: CSN nyheter
+    url: https://www.csn.se/om-csn/press/nyheter.html
+    type: web
+    category: student_finance
+    priority: orange
+  - name: Socialstyrelsen nyheter
+    url: https://www.socialstyrelsen.se/om-socialstyrelsen/pressrum/nyheter/
+    type: web
+    category: health_social_care
+    priority: orange
+  - name: Folkhälsomyndigheten nyheter
+    url: https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/
+    type: web
+    category: public_health
+    priority: orange
+  - name: Konsumentverket nyheter
+    url: https://www.konsumentverket.se/aktuellt/nyheter/
+    type: web
+    category: consumer_rights
+    priority: green
+  - name: Kronofogden nyheter
+    url: https://kronofogden.se/om-oss/nyheter
+    type: web
+    category: debt_authority
+    priority: green
+  - name: Boverket nyheter
+    url: https://www.boverket.se/sv/om-boverket/publicerat-av-boverket/nyheter/
+    type: web
+    category: housing_authority
+    priority: green
   - name: Liberalerna pressrum
     url: https://www.liberalerna.se/pressrum
     type: web
@@ -273,6 +323,21 @@ sources:
     url: https://news.google.com/rss/search?q=Sverige%20barnbidrag%20bostadsbidrag%20F%C3%B6rs%C3%A4kringskassan%20Skatteverket%20CSN%201177%20when%3A7d&hl=sv&gl=SE&ceid=SE:sv
     type: rss
     category: search_daily_life
+    priority: orange
+  - name: Prisma webbsök Försäkringskassan
+    url: https://news.google.com/rss/search?q=F%C3%B6rs%C3%A4kringskassan%20barnbidrag%20bostadsbidrag%20f%C3%B6r%C3%A4ldrapenning%20vab%20sjukpenning%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_social_insurance
+    priority: orange
+  - name: Prisma webbsök Skatteverket CSN Arbetsförmedlingen
+    url: https://news.google.com/rss/search?q=Skatteverket%20CSN%20Arbetsf%C3%B6rmedlingen%20Sverige%20nya%20regler%20bidrag%20arbete%20studier%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_daily_authorities
+    priority: orange
+  - name: Prisma webbsök vård hälsa myndigheter
+    url: https://news.google.com/rss/search?q=Socialstyrelsen%20Folkh%C3%A4lsomyndigheten%201177%20Region%20Stockholm%20v%C3%A5rd%20h%C3%A4lsa%20barn%20unga%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv
+    type: rss
+    category: search_health
     priority: orange
   - name: Prisma webbsök kultur latino Stockholm
     url: https://news.google.com/rss/search?q=Stockholm%20latino%20latinamerikansk%20spanska%20kultur%20evenemang%20when%3A14d&hl=sv&gl=SE&ceid=SE:sv

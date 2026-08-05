@@ -19,7 +19,7 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 WEB_REQUEST_MAX_SECONDS = 12.0
-WEB_REQUEST_MAX_SOURCES = 21
+WEB_REQUEST_MAX_SOURCES = 24
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -48,6 +48,9 @@ DEFAULT_DESK_MIX_SOURCE_NAMES = [
     "Prisma webbsök arbete ekonomi",
     "Prisma webbsök lagar samhälle",
     "Prisma webbsök vardag myndigheter",
+    "Prisma webbsök Försäkringskassan",
+    "Prisma webbsök Skatteverket CSN Arbetsförmedlingen",
+    "Prisma webbsök vård hälsa myndigheter",
     "Prisma webbsök kultur latino Stockholm",
     "SVT Stockholm",
     "P4 Stockholm",
