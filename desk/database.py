@@ -137,6 +137,7 @@ def init_db() -> None:
             "ALTER TABLE runs ADD COLUMN sources_total INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_fetched INTEGER DEFAULT 0",
             "ALTER TABLE runs ADD COLUMN sources_skipped_names TEXT",
+            "ALTER TABLE runs ADD COLUMN progress_at TEXT",
         ]:
             try:
                 conn.execute(statement)
@@ -151,6 +152,16 @@ def start_run() -> int:
             (utc_now_iso(), "RUNNING"),
         )
         return int(cursor.lastrowid)
+
+
+def update_run_progress(run_id: int, configured: int, completed: int, failed: int, found: int) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            """UPDATE runs SET progress_at = ?, sources_configured = ?,
+            sources_total = ?, sources_attempted = ?, sources_fetched = ?,
+            sources_failed = ?, items_found = ? WHERE id = ? AND status = 'RUNNING'""",
+            (utc_now_iso(), configured, configured, completed, completed, failed, found, run_id),
+        )
 
 
 def finish_run(
@@ -426,6 +437,9 @@ def enrich_with_cluster_info(items: list[dict]) -> list[dict]:
             ).fetchall()
             member_sources = {int(row["id"]): row["source_name"] for row in rows}
 
+    visible_members = {}
+    for item in items:
+        visible_members.setdefault(item.get("cluster_id"), []).append(item)
     for item in items:
         cluster = clusters.get(item.get("cluster_id"))
         if not cluster:
@@ -434,7 +448,12 @@ def enrich_with_cluster_info(items: list[dict]) -> list[dict]:
             item["cluster_other_sources"] = []
             continue
         member_ids = json.loads(cluster["member_item_ids"] or "[]")
-        item["cluster_is_primary"] = int(item["id"]) == int(cluster["primary_item_id"])
+        available = visible_members[item.get("cluster_id")]
+        available_ids = {member["id"] for member in available}
+        primary_id = cluster["primary_item_id"]
+        if primary_id not in available_ids:
+            primary_id = max(available, key=lambda member: member.get("score") or 0)["id"]
+        item["cluster_is_primary"] = item["id"] == primary_id
         item["cluster_size"] = len(member_ids)
         item["cluster_other_sources"] = [
             member_sources.get(member_id, "Okänd källa")
@@ -449,7 +468,7 @@ def latest_run() -> sqlite3.Row | None:
         return conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT 1").fetchone()
 
 
-def mark_stale_running_runs(max_age_minutes: int = 2) -> int:
+def mark_stale_running_runs(max_age_minutes: int = 10) -> int:
     cutoff = (datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)).isoformat(
         timespec="seconds"
     )
@@ -462,7 +481,7 @@ def mark_stale_running_runs(max_age_minutes: int = 2) -> int:
                 status = 'FAILED',
                 errors = COALESCE(NULLIF(errors, ''), 'Körningen avbröts innan den hann avslutas.')
             WHERE status = 'RUNNING'
-              AND started_at < ?
+              AND COALESCE(progress_at, started_at) < ?
             """,
             (utc_now_iso(), cutoff),
         )

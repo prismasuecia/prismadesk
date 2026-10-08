@@ -1,12 +1,11 @@
 import os
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 from desk.update_runner import (
-    WEB_REQUEST_MAX_SECONDS,
-    WEB_REQUEST_MAX_SOURCES,
     _maybe_read_mail,
-    clamp_seconds_for_web_request,
     clamp_sources_for_web_request,
     load_sources,
     ordered_sources_for_update,
@@ -42,11 +41,10 @@ class UpdateRunnerTest(unittest.TestCase):
         with patch.dict(os.environ, {"ENABLE_MAIL": "false"}, clear=False):
             self.assertEqual(_maybe_read_mail(), [])
 
-    def test_web_request_clamps_sources_and_seconds(self):
+    def test_async_update_keeps_all_sources_even_with_legacy_limits(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
-        with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):
-            self.assertEqual(len(clamp_sources_for_web_request(sources)), WEB_REQUEST_MAX_SOURCES)
-            self.assertEqual(clamp_seconds_for_web_request(45), WEB_REQUEST_MAX_SECONDS)
+        with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false", "PRISMA_UPDATE_MAX_SECONDS": "12"}, clear=False):
+            self.assertEqual(len(clamp_sources_for_web_request(sources)), 40)
 
     def test_default_web_request_includes_culture_sources(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
@@ -118,7 +116,6 @@ class UpdateRunnerTest(unittest.TestCase):
             "Regeringen utrikesministern",
         ):
             self.assertIn(source_name, ordered_names)
-            self.assertLess(ordered_names.index(source_name), WEB_REQUEST_MAX_SOURCES)
 
     def test_real_default_mix_includes_fast_prisma_authority_searches(self):
         with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "false"}, clear=False):
@@ -130,10 +127,32 @@ class UpdateRunnerTest(unittest.TestCase):
             "Prisma webbsök vård hälsa myndigheter",
         ):
             self.assertIn(source_name, ordered_names)
-            self.assertLess(ordered_names.index(source_name), WEB_REQUEST_MAX_SOURCES)
 
     def test_long_update_can_be_enabled_for_local_runs(self):
         sources = [{"name": f"Källa {index}", "priority": "green"} for index in range(40)]
         with patch.dict(os.environ, {"PRISMA_ALLOW_LONG_UPDATE": "true"}, clear=False):
             self.assertEqual(len(clamp_sources_for_web_request(sources)), 40)
-            self.assertEqual(clamp_seconds_for_web_request(45), 45)
+
+    def test_full_run_attempts_every_source_despite_legacy_budget_and_one_failure(self):
+        from desk import database
+        from desk.update_runner import run_update
+        calls = []
+
+        def fetch(source):
+            calls.append(source["name"])
+            if source["name"] == "Via TT":
+                raise RuntimeError("Unavailable test source")
+            return []
+
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
+            "PRISMA_DB_PATH": str(Path(directory) / "desk.sqlite3"),
+            "PRISMA_UPDATE_MAX_SECONDS": "12", "ENABLE_MAIL": "false",
+        }), patch("desk.update_runner.fetch_source", side_effect=fetch), patch(
+            "desk.update_runner.fetch_prisma_articles", return_value=[]
+        ):
+            result = run_update()
+            self.assertEqual(result["sources_fetched"], result["sources_total"])
+            self.assertEqual(len(calls), result["sources_total"])
+            self.assertEqual(result["sources_skipped"], 0)
+            self.assertEqual(result["source_stats"]["failed"], 1)
+            self.assertEqual(database.latest_run()["status"], "OK_WITH_ERRORS")

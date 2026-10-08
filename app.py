@@ -143,9 +143,9 @@ def update_is_running() -> bool:
     return latest_run.get("status") == "RUNNING"
 
 
-def run_update_worker() -> None:
+def run_update_worker(run_id=None) -> None:
     try:
-        run_update()
+        run_update(run_id=run_id)
     except Exception:
         traceback.print_exc()
     finally:
@@ -376,6 +376,10 @@ def build_sections(items):
             "title": section["title"],
             "items": section_items,
         }
+    shown_ids = {item["id"] for section in grouped.values() for item in section["items"] if "id" in item}
+    follow_up = [item for item in items if item.get("desk") in {"PRISMA", "BOTH", "ZUMA"}
+                 and is_fresh(item) and item.get("id") not in shown_ids]
+    grouped["follow_up"] = {"title": "REDAKTIONELL UPPFÖLJNING", "items": follow_up}
     return grouped
 
 
@@ -411,9 +415,9 @@ def dashboard():
     view = request.args.get("view", "latest")
     source_view = "all" if view == "all" else "latest"
     if source_view == "all" or not latest_run:
-        items = [row_to_dict(row) for row in database.latest_items()]
+        items = [row_to_dict(row) for row in database.latest_items(limit=2000)]
     else:
-        items = [row_to_dict(row) for row in database.items_for_run(latest_run["id"])]
+        items = [row_to_dict(row) for row in database.items_for_run(latest_run["id"], limit=2000)]
     items = prepare_items_for_dashboard(items)
     items = apply_role_filter(items, view)
     previous_visit = database.get_last_viewed_at()
@@ -426,9 +430,12 @@ def dashboard():
                 new_since_last_visit += 1
     database.mark_viewed_now()
     message = request.args.get("message", "")
+    sections = build_sections(items)
+    shown_ids = {item["id"] for section in sections.values() for item in section["items"]}
     return render_template(
         "dashboard.html",
-        sections=build_sections(items),
+        sections=sections,
+        hidden_items=len(items) - len(shown_ids),
         latest_run=latest_run,
         view=view,
         source_view=source_view,
@@ -506,7 +513,7 @@ def last_run_debug():
     if auth_redirect:
         return auth_redirect
     database.init_db()
-    database.mark_stale_running_runs(max_age_minutes=2)
+    database.mark_stale_running_runs()
     latest_run = normalize_latest_run(database.latest_run())
     if not latest_run:
         return "Ingen körning finns ännu.\n", 200
@@ -545,7 +552,8 @@ def update():
             return jsonify({"started": False, "active": True, "message": "Uppdatering kör redan."}), 409
         return redirect(url_for("dashboard", message="Uppdatering kör redan."))
     try:
-        Thread(target=run_update_worker, daemon=True).start()
+        run_id = database.start_run()
+        Thread(target=lambda: run_update_worker(run_id), daemon=True).start()
     except Exception as exc:
         try:
             update_lock.release()
@@ -556,7 +564,7 @@ def update():
             return jsonify({"started": False, "active": False, "message": f"Kunde inte starta uppdatering: {type(exc).__name__}."}), 500
         return redirect(url_for("dashboard", message=f"Kunde inte starta uppdatering: {type(exc).__name__}."))
     if wants_json_response():
-        return jsonify({"started": True, "active": True, "message": "Uppdatering startad."}), 202
+        return jsonify({"started": True, "active": True, "id": run_id, "message": "Uppdatering startad."}), 202
     return redirect(url_for("dashboard", message="Uppdatering startad. Sidan uppdaterar status automatiskt."))
 
 

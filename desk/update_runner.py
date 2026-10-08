@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import yaml
 import os
-import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -18,8 +18,6 @@ from prisma_site.duplicate_checker import apply_prisma_status, fetch_prisma_arti
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-WEB_REQUEST_MAX_SECONDS = 12.0
-WEB_REQUEST_MAX_SOURCES = 26
 SOURCE_PRIORITY_ORDER = {
     "red": 0,
     "orange": 1,
@@ -98,8 +96,7 @@ def load_sources() -> list[dict]:
 
 
 def clamp_sources_for_web_request(sources: list[dict]) -> list[dict]:
-    if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
-        return sources
+    # The HTTP request returns immediately; the manually started job reads every source.
     by_name = {source.get("name"): source for source in sources}
     selected: list[dict] = []
     seen: set[str] = set()
@@ -116,10 +113,7 @@ def clamp_sources_for_web_request(sources: list[dict]) -> list[dict]:
             continue
         selected.append(source)
         seen.add(name)
-        if len(selected) >= WEB_REQUEST_MAX_SOURCES:
-            break
-
-    return selected[:WEB_REQUEST_MAX_SOURCES]
+    return selected
 
 
 def ordered_sources_for_update(sources: list[dict]) -> list[dict]:
@@ -135,14 +129,6 @@ def ordered_sources_for_update(sources: list[dict]) -> list[dict]:
         ),
     )
     return [source for _, source in ordered_pairs]
-
-
-def clamp_seconds_for_web_request(max_seconds: float) -> float:
-    if os.getenv("PRISMA_ALLOW_LONG_UPDATE", "false").lower() == "true":
-        return max_seconds
-    if max_seconds <= 0:
-        return WEB_REQUEST_MAX_SECONDS
-    return min(max_seconds, WEB_REQUEST_MAX_SECONDS)
 
 
 def count_configured_sources() -> int:
@@ -168,14 +154,10 @@ def _maybe_read_mail() -> list[NewsItem]:
     return read_recent_mail()
 
 
-def run_update() -> dict:
+def run_update(run_id: int | None = None) -> dict:
     load_dotenv(BASE_DIR / ".env")
     database.init_db()
-    run_id = database.start_run()
-    started = time.monotonic()
-    max_seconds = clamp_seconds_for_web_request(
-        float(os.getenv("PRISMA_UPDATE_MAX_SECONDS", "0") or "0")
-    )
+    run_id = run_id if run_id is not None else database.start_run()
     errors: list[str] = []
     all_items: list[NewsItem] = []
     prisma_articles = []
@@ -192,7 +174,12 @@ def run_update() -> dict:
         if source not in selected_sources
     ]
 
+    def progress():
+        database.update_run_progress(run_id, configured_sources, sources_attempted,
+                                     sources_failed, len(all_items))
+
     try:
+        progress()
         site_url = __import__("os").getenv("PRISMA_SITE_URL", "https://www.prismasuecia.se")
         try:
             prisma_articles = fetch_prisma_articles(site_url)
@@ -200,26 +187,26 @@ def run_update() -> dict:
         except Exception as exc:
             errors.append(f"Prisma site: {exc}")
 
-        for source in selected_sources:
-            if max_seconds and time.monotonic() - started > max_seconds:
-                remaining_sources = selected_sources[sources_attempted:]
-                errors.append(
-                    f"Tidsbudget nådd efter {int(max_seconds)} sekunder. Kör igen för fler källor."
-                )
-                sources_skipped += len(remaining_sources)
-                sources_skipped_names.extend(
-                    source.get("name", "Okänd källa") for source in remaining_sources
-                )
-                break
-            sources_attempted += 1
-            try:
-                source_items = fetch_source(source)
-                database.update_source_health(source.get("name", "Okänd källa"), len(source_items))
-                all_items.extend(source_items)
-            except Exception as exc:
-                sources_failed += 1
-                database.update_source_health(source.get("name", "Okänd källa"), 0)
-                errors.append(f"{source.get('name', 'Okänd källa')}: {exc}")
+        fetched_items = {}
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            pending = {executor.submit(fetch_source, source): source for source in selected_sources}
+            for future in as_completed(pending):
+                source = pending[future]
+                sources_attempted += 1
+                try:
+                    source_items = future.result()
+                    database.update_source_health(source.get("name", "Okänd källa"), len(source_items))
+                    fetched_items[source["name"]] = source_items
+                    all_items.extend(source_items)
+                except Exception as exc:
+                    sources_failed += 1
+                    database.update_source_health(source.get("name", "Okänd källa"), 0)
+                    errors.append(f"{source.get('name', 'Okänd källa')}: {exc}")
+                progress()
+
+        # Preserve source precedence when exact duplicates arrive in a different order.
+        all_items = [item for source in selected_sources
+                     for item in fetched_items.get(source["name"], [])]
 
         try:
             all_items.extend(_maybe_read_mail())
@@ -233,13 +220,15 @@ def run_update() -> dict:
 
         rules = load_yaml(BASE_DIR / "config" / "rules.yaml")
         classified: list[NewsItem] = []
-        for item in unique_items.values():
+        for index, item in enumerate(unique_items.values()):
             classify_item(item, rules)
             apply_prisma_status(item, prisma_articles)
             from desk.scoring import calculate_score
 
             item.score = calculate_score(item)
             classified.append(item)
+            if index % 50 == 0:
+                progress()
 
         saved_count = database.save_items(classified, run_id=run_id)
         run_items = [dict(row) for row in database.items_for_run(run_id, limit=1000)]

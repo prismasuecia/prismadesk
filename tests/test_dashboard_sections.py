@@ -6,6 +6,13 @@ from app import build_sections, prepare_items_for_dashboard
 
 
 class DashboardSectionsTest(unittest.TestCase):
+    def test_relevant_prisma_follow_up_does_not_disappear_between_sections(self):
+        item = {"id": 1, "priority": "ORANGE", "desk": "PRISMA",
+                "action_recommendation": "FÖLJ_UPP", "accreditation_needed": None,
+                "deadline_detected": False, "prisma_status": "EJ_PUBLICERAD",
+                "raw_json": json.dumps({"temporal_status": "CURRENT"})}
+        self.assertEqual(build_sections([item])["follow_up"]["items"], [item])
+
     def test_old_red_press_event_is_not_in_akut(self):
         item = {
             "source_name": "Regeringen",

@@ -3,6 +3,7 @@ const runStatusPanel = document.querySelector("[data-run-status-panel]");
 const statusText = document.querySelector("[data-run-status-text]");
 const statusDetail = document.querySelector("[data-run-status-detail]");
 let sawActiveRun = false;
+let expectedRunId = Number(runStatusPanel?.dataset.runId || 0);
 
 const setUpdateButtonState = (active) => {
   if (!updateButton) return;
@@ -23,13 +24,18 @@ if (runStatusPanel) {
       const response = await fetch(statusUrl, { cache: "no-store" });
       if (!response.ok) return;
       const data = await response.json();
+      if ((expectedRunId && !data.id) || (data.id && data.id < expectedRunId)) {
+        setStatus("STATUS KUNDE INTE BEKRÄFTAS", "Serverns live-status stämmer inte med den visade körningen. Senaste sparade resultat visas fortfarande.");
+        return;
+      }
+      expectedRunId = Math.max(expectedRunId, data.id || 0);
       const status = data.status || "UNKNOWN";
       const active = Boolean(data.active || status === "RUNNING");
       setUpdateButtonState(active);
       setStatus(
         active ? "RUNNING" : status,
         active
-          ? `Uppdatering körs: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor startade.`
+          ? `Uppdatering körs: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor kontrollerade.`
           : `Senaste körning: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor, ${data.sources_failed || 0} fel, ${data.items_found || 0} fynd.`
       );
       if (active) {
@@ -71,6 +77,7 @@ if (updateButton) {
         setUpdateButtonState(false);
         setStatus("FEL", data.message || "Kunde inte starta uppdateringen.");
       } else {
+        expectedRunId = data.id || expectedRunId;
         sawActiveRun = true;
         setStatus("RUNNING", data.message || "Uppdatering startad.");
       }

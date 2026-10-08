@@ -44,7 +44,7 @@
     <p class="flash">{{ message }}</p>
   {% endif %}
 
-  <section class="run-status-panel" data-run-status-panel data-run-status-url="{{ url_for('run_status') }}">
+  <section class="run-status-panel" data-run-status-panel data-run-id="{{ latest_run['id'] if latest_run else '' }}" data-run-status-url="{{ url_for('run_status') }}">
     <div>
       <span class="label">Live-status</span>
       <strong data-run-status-text>{{ latest_run["status"] if latest_run else "Väntar" }}</strong>
@@ -70,6 +70,13 @@
     <a href="{{ url_for('dashboard', view='zuma') }}" aria-current="{{ 'page' if view == 'zuma' else 'false' }}">ZUMA</a>
     <a href="{{ url_for('dashboard', view='prisma') }}" aria-current="{{ 'page' if view == 'prisma' else 'false' }}">Prisma</a>
   </nav>
+
+  {% if latest_run and latest_run['sources_skipped'] %}
+    <p class="flash">Ofullständig bevakning: {{ latest_run['sources_skipped'] }} källor kontrollerades inte i senaste körningen.</p>
+  {% endif %}
+  {% if hidden_items %}
+    <p class="empty">{{ hidden_items }} fynd visas inte som aktuella rekommendationer: äldre, passerade eller bedömda som låg relevans.</p>
+  {% endif %}
 
   {% for key, section in sections.items() %}
     <section class="desk-section desk-section--{{ key }}">
