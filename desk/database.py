@@ -139,6 +139,7 @@ def init_db() -> None:
             "ALTER TABLE runs ADD COLUMN sources_skipped_names TEXT",
             "ALTER TABLE runs ADD COLUMN progress_at TEXT",
             "ALTER TABLE runs ADD COLUMN stage TEXT",
+            "ALTER TABLE runs ADD COLUMN items_processed INTEGER DEFAULT 0",
         ]:
             try:
                 conn.execute(statement)
@@ -155,13 +156,13 @@ def start_run() -> int:
         return int(cursor.lastrowid)
 
 
-def update_run_progress(run_id: int, configured: int, completed: int, failed: int, found: int, stage: str = 'FETCHING') -> None:
+def update_run_progress(run_id: int, configured: int, completed: int, failed: int, found: int, stage: str = 'FETCHING', processed: int = 0) -> None:
     with get_connection() as conn:
         conn.execute(
             """UPDATE runs SET progress_at = ?, sources_configured = ?,
             sources_total = ?, sources_attempted = ?, sources_fetched = ?,
-            sources_failed = ?, items_found = ?, stage = ? WHERE id = ? AND status = 'RUNNING'""",
-            (utc_now_iso(), configured, configured, completed, completed, failed, found, stage, run_id),
+            sources_failed = ?, items_found = ?, stage = ?, items_processed = ? WHERE id = ? AND status = 'RUNNING'""",
+            (utc_now_iso(), configured, configured, completed, completed, failed, found, stage, processed, run_id),
         )
 
 

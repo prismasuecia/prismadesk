@@ -488,6 +488,7 @@ def run_status():
             "id": latest_run.get("id"),
             "status": latest_run.get("status"),
             "stage": latest_run.get("stage"),
+            "items_processed": latest_run.get("items_processed") or 0,
             "started_at": latest_run.get("started_at"),
             "finished_at": latest_run.get("finished_at"),
             "items_found": latest_run.get("items_found") or 0,
@@ -521,6 +522,9 @@ def last_run_debug():
     lines = [
         f"id={latest_run.get('id')}",
         f"status={latest_run.get('status')}",
+        f"stage={latest_run.get('stage')}",
+        f"items_processed={latest_run.get('items_processed')}",
+        f"progress_at={latest_run.get('progress_at')}",
         f"started_at={latest_run.get('started_at')}",
         f"finished_at={latest_run.get('finished_at')}",
         f"items_found={latest_run.get('items_found')}",

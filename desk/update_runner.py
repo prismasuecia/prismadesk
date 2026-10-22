@@ -167,6 +167,7 @@ def run_update(run_id: int | None = None) -> dict:
     selected_sources = ordered_sources_for_update(configured_selected_sources)
     sources_attempted = 0
     sources_failed = 0
+    classified: list[NewsItem] = []
     sources_skipped = max(configured_sources - len(selected_sources), 0)
     sources_skipped_names = [
         source.get("name", "Okänd källa")
@@ -176,7 +177,7 @@ def run_update(run_id: int | None = None) -> dict:
 
     def progress(stage='FETCHING'):
         database.update_run_progress(run_id, configured_sources, sources_attempted,
-                                     sources_failed, len(all_items), stage=stage)
+                                     sources_failed, len(all_items), stage=stage, processed=len(classified))
 
     try:
         progress()
@@ -220,7 +221,8 @@ def run_update(run_id: int | None = None) -> dict:
 
         rules = load_yaml(BASE_DIR / "config" / "rules.yaml")
         progress('CLASSIFYING')
-        classified: list[NewsItem] = []
+        saved_count = 0
+        batch = []
         for index, item in enumerate(unique_items.values()):
             classify_item(item, rules)
             apply_prisma_status(item, prisma_articles)
@@ -228,10 +230,13 @@ def run_update(run_id: int | None = None) -> dict:
 
             item.score = calculate_score(item)
             classified.append(item)
-            if index % 50 == 0:
+            batch.append(item)
+            if len(batch) >= 25:
+                saved_count += database.save_items(batch, run_id=run_id)
+                batch = []
                 progress('CLASSIFYING')
 
-        saved_count = database.save_items(classified, run_id=run_id)
+        saved_count += database.save_items(batch, run_id=run_id)
         run_items = [dict(row) for row in database.items_for_run(run_id, limit=1000)]
         recent_items = [dict(row) for row in database.items_in_window(hours=72)]
         progress('CLUSTERING')

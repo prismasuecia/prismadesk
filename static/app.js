@@ -4,6 +4,8 @@ const statusText = document.querySelector("[data-run-status-text]");
 const statusDetail = document.querySelector("[data-run-status-detail]");
 let sawActiveRun = false;
 let expectedRunId = Number(runStatusPanel?.dataset.runId || 0);
+const renderedProcessed = Number(runStatusPanel?.dataset.processed || 0);
+const pageOpenedAt = Date.now();
 
 const setUpdateButtonState = (active) => {
   if (!updateButton) return;
@@ -36,11 +38,16 @@ if (runStatusPanel) {
       setStatus(
         active ? "RUNNING" : status,
         active
-          ? `${stages[data.stage] || 'Hämtar källor'}: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor kontrollerade, ${data.items_found || 0} fynd.`
+          ? (data.stage === 'CLASSIFYING'
+              ? `Analyserar fynd: ${data.items_processed || 0}/${data.items_found || 0} klara. Sparade fynd kan visas under tiden.`
+              : `${stages[data.stage] || 'Hämtar källor'}: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor kontrollerade, ${data.items_found || 0} fynd.`)
           : `Senaste körning: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor, ${data.sources_failed || 0} fel, ${data.items_found || 0} fynd.`
       );
       if (active) {
         sawActiveRun = true;
+        if (data.items_processed > renderedProcessed && Date.now() - pageOpenedAt > 15000) {
+          window.location.reload();
+        }
       } else if (sawActiveRun) {
         window.location.reload();
       }

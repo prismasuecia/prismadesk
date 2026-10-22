@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from functools import lru_cache
 from typing import Iterable
 
 from desk.models import NewsItem
@@ -259,14 +260,20 @@ COMMON_SWEDISH_ARTIST_OR_NAME_WORDS = {
 }
 
 
+@lru_cache(maxsize=4096)
+def _term_pattern(term: str):
+    return re.compile(r"(?<![0-9A-Za-zÅÄÖåäö])" + re.escape(term) + r"(?![0-9A-Za-zÅÄÖåäö])")
+
+
 def _contains_any(text: str, terms: Iterable[str]) -> list[str]:
     matches: list[str] = []
+    lowered = text.lower()
     for term in terms:
         clean_term = str(term).strip()
         if not clean_term:
             continue
-        pattern = r"(?<![0-9A-Za-zÅÄÖåäö])" + re.escape(clean_term.lower()) + r"(?![0-9A-Za-zÅÄÖåäö])"
-        if re.search(pattern, text.lower()):
+        normalized = clean_term.lower()
+        if normalized in lowered and _term_pattern(normalized).search(lowered):
             matches.append(clean_term)
     return matches
 

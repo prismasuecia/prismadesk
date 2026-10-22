@@ -44,7 +44,7 @@
     <p class="flash">{{ message }}</p>
   {% endif %}
 
-  <section class="run-status-panel" data-run-status-panel data-run-id="{{ latest_run['id'] if latest_run else '' }}" data-run-status-url="{{ url_for('run_status') }}">
+  <section class="run-status-panel" data-run-status-panel data-run-id="{{ latest_run['id'] if latest_run else '' }}" data-processed="{{ latest_run['items_processed'] or 0 if latest_run else 0 }}" data-run-status-url="{{ url_for('run_status') }}">
     <div>
       <span class="label">Live-status</span>
       <strong data-run-status-text>{{ latest_run["status"] if latest_run else "Väntar" }}</strong>
