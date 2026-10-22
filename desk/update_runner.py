@@ -174,9 +174,9 @@ def run_update(run_id: int | None = None) -> dict:
         if source not in selected_sources
     ]
 
-    def progress():
+    def progress(stage='FETCHING'):
         database.update_run_progress(run_id, configured_sources, sources_attempted,
-                                     sources_failed, len(all_items))
+                                     sources_failed, len(all_items), stage=stage)
 
     try:
         progress()
@@ -219,6 +219,7 @@ def run_update(run_id: int | None = None) -> dict:
             unique_items[item.hash] = item
 
         rules = load_yaml(BASE_DIR / "config" / "rules.yaml")
+        progress('CLASSIFYING')
         classified: list[NewsItem] = []
         for index, item in enumerate(unique_items.values()):
             classify_item(item, rules)
@@ -228,12 +229,13 @@ def run_update(run_id: int | None = None) -> dict:
             item.score = calculate_score(item)
             classified.append(item)
             if index % 50 == 0:
-                progress()
+                progress('CLASSIFYING')
 
         saved_count = database.save_items(classified, run_id=run_id)
         run_items = [dict(row) for row in database.items_for_run(run_id, limit=1000)]
         recent_items = [dict(row) for row in database.items_in_window(hours=72)]
-        clusters = cluster_new_items(run_items, recent_items)
+        progress('CLUSTERING')
+        clusters = cluster_new_items(run_items, recent_items, on_progress=lambda: progress('CLUSTERING'))
         for cluster_key, item_ids in clusters.items():
             if len(item_ids) > 1:
                 database.save_cluster(cluster_key, item_ids)

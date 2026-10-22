@@ -172,8 +172,6 @@ def detect_swedish_event_datetime(text: str, now: datetime | None = None) -> dat
             candidate = datetime(year, month, day, hour, minute, tzinfo=now.tzinfo)
         except ValueError:
             continue
-        if index >= 2 and not match.group(3) and (now - candidate).total_seconds() > 180 * 24 * 3600:
-            candidate = candidate.replace(year=year + 1)
         return candidate
     return None
 

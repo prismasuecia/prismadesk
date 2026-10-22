@@ -31,11 +31,12 @@ if (runStatusPanel) {
       expectedRunId = Math.max(expectedRunId, data.id || 0);
       const status = data.status || "UNKNOWN";
       const active = Boolean(data.active || status === "RUNNING");
+      const stages = {CLASSIFYING: "Analyserar fynd", CLUSTERING: "Grupperar samma nyhet från flera källor"};
       setUpdateButtonState(active);
       setStatus(
         active ? "RUNNING" : status,
         active
-          ? `Uppdatering körs: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor kontrollerade.`
+          ? `${stages[data.stage] || 'Hämtar källor'}: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor kontrollerade, ${data.items_found || 0} fynd.`
           : `Senaste körning: ${data.sources_attempted || 0}/${data.sources_configured || 0} källor, ${data.sources_failed || 0} fel, ${data.items_found || 0} fynd.`
       );
       if (active) {

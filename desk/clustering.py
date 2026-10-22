@@ -44,21 +44,49 @@ def _same_time_window(a: dict, b: dict) -> bool:
     return True
 
 
-def cluster_new_items(new_items: list[dict], recent_window_items: list[dict]) -> dict[str, list[int]]:
+def cluster_new_items(new_items: list[dict], recent_window_items: list[dict], on_progress=None) -> dict[str, list[int]]:
     clusters: dict[str, list[int]] = {}
-    candidates = recent_window_items + new_items
+    candidates = list({item['id']: item for item in recent_window_items + new_items}.values())
+    words = {item['id']: _normalize_title(item.get('title', '')) for item in candidates}
+    event_dates = {}
+    published_dates = {}
+    word_index = {}
+    for candidate in candidates:
+        for word in words[candidate['id']]:
+            word_index.setdefault(word, set()).add(candidate['id'])
+    positions = {item['id']: index for index, item in enumerate(candidates)}
+    by_id = {item['id']: item for item in candidates}
+
+    def same_window(a, b):
+        for row in (a, b):
+            item_id = row['id']
+            if item_id not in event_dates:
+                event_dates[item_id] = _extract_event_date(row)
+                published_dates[item_id] = _published_datetime(row)
+        event_a, event_b = event_dates[a['id']], event_dates[b['id']]
+        if event_a and event_b:
+            return event_a.date() == event_b.date()
+        pub_a, pub_b = published_dates[a['id']], published_dates[b['id']]
+        return not (pub_a and pub_b) or abs((pub_a - pub_b).total_seconds()) <= 48 * 3600
     assigned: dict[int, str] = {}
 
-    for item in new_items:
+    for index, item in enumerate(new_items):
+        if on_progress and index % 50 == 0:
+            on_progress()
         best_match_key = None
         best_match_id = None
         best_score = 0.0
 
-        for other in candidates:
+        shared_ids = set()
+        for word in words[item['id']]:
+            shared_ids.update(word_index[word])
+        for other_id in sorted(shared_ids, key=positions.get):
+            other = by_id[other_id]
             if other.get("id") == item.get("id"):
                 continue
-            score = _similarity(item, other)
-            if score < 0.45 or not _same_time_window(item, other):
+            left, right = words[item['id']], words[other_id]
+            score = len(left & right) / len(left | right) if left or right else 0.0
+            if score < 0.45 or not same_window(item, other):
                 continue
             if score > best_score:
                 best_score = score

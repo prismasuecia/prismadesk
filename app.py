@@ -487,6 +487,7 @@ def run_status():
             "active": update_is_running(),
             "id": latest_run.get("id"),
             "status": latest_run.get("status"),
+            "stage": latest_run.get("stage"),
             "started_at": latest_run.get("started_at"),
             "finished_at": latest_run.get("finished_at"),
             "items_found": latest_run.get("items_found") or 0,
